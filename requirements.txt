@@ -1,0 +1,2 @@
+# Spatial Metaverse Server relies exclusively on Python standard library
+# Zero external pip dependencies required

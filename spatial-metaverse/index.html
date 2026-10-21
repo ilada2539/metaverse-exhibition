@@ -1,0 +1,1286 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Spatial Metaverse - นิทรรศการศาสนาสากล 5 ศาสนา</title>
+  
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="css/spatial.css?v=v14_blackscreen_fix">
+</head>
+<body>
+
+  <!-- =========================================================================
+       3D VIEWPORT & CANVAS
+       ========================================================================= -->
+  <div id="canvas-container">
+    <canvas id="metaverse-canvas"></canvas>
+  </div>
+
+  <div id="crosshair"></div>
+
+  <div id="interaction-prompt">
+    <span class="key-badge">E</span> กดเพื่อดูผลงาน / สร้างนิทรรศการ
+  </div>
+
+  <!-- =========================================================================
+       TOP BAR HUD
+       ========================================================================= -->
+  <header id="top-hud">
+    <!-- Left: Brand & Room Status -->
+    <div class="hud-left">
+      <div class="brand-badge">
+        <div class="brand-icon">🏫</div>
+        <div class="brand-info">
+          <h1>SPATIAL METAVERSE • โรงเรียนพัฒนานิคม</h1>
+          <span id="brand-room-subtitle">🏫 ห้องเรียนนิทรรศการ 5 ศาสนาสากล</span>
+        </div>
+      </div>
+
+      <!-- Room Switcher Dropdown in HUD -->
+      <div class="room-hud-selector-box" title="สลับห้องนิทรรศการ 5 ศาสนา">
+        <select id="hud-room-select" class="room-hud-select">
+          <option value="1">☸️ ห้อง 1: ศาสนาพุทธ</option>
+          <option value="2">✝️ ห้อง 2: ศาสนาคริสต์</option>
+          <option value="3">🕉️ ห้อง 3: ศาสนาพราหมณ์-ฮินดู</option>
+          <option value="4">☪️ ห้อง 4: ศาสนาอิสลาม</option>
+          <option value="5">✡️ ห้อง 5: ศาสนายูดาห์</option>
+        </select>
+      </div>
+
+      <div class="room-status">
+        <div class="status-dot"></div>
+        <span id="visitor-count-text">1 คน (ออนไลน์จริง)</span>
+      </div>
+    </div>
+
+    <!-- Center: 3 DEDICATED PORTAL BUTTONS (สร้างงาน / ครูผู้สอน / ผู้เข้าชม) -->
+    <div class="hud-center">
+      <div class="portal-switch-group">
+        <button id="btn-open-creator" class="portal-pill creator" title="เปิดหน้าต่างสร้างและติดตั้งผลงานนิทรรศการ">
+          🎨 สร้างนิทรรศการ
+        </button>
+        <button id="btn-open-teacher" class="portal-pill teacher" title="เปิดหน้าต่างจัดการห้องเรียนและล้างข้อมูล">
+          🎓 ครูผู้สอน
+        </button>
+        <button id="btn-open-visitor" class="portal-pill visitor" title="เปิดหน้าต่างสารบัญนำชมและวาร์ปไปบูธต่างๆ">
+          🧭 สำหรับผู้เข้าชม
+        </button>
+      </div>
+
+      <div id="teacher-broadcast-bar">
+        <span>📢</span>
+        <span id="teacher-broadcast-msg">ยินดีต้อนรับสู่จักรวาลนฤมิต 3D</span>
+      </div>
+    </div>
+
+    <!-- Right: View Modes & Profile -->
+    <div class="hud-right">
+      <button id="btn-share-online" class="hud-pill-btn" style="background: rgba(16, 185, 129, 0.2); border-color: rgba(16, 185, 129, 0.4); color: #34d399; font-weight: 700;" title="เปิดดูลิงก์ออนไลน์ & QR Code สำหรับมือถือและไอแพด">
+        📲 ลิงก์ออนไลน์
+      </button>
+
+      <button id="btn-camera-view" class="hud-pill-btn" title="สลับมุมมองบุคคลที่ 1 / บุคคลที่ 3 (กดปุ่ม V)">
+        🎥 มุมมองบุคคลที่ 3
+      </button>
+
+      <div id="user-profile-badge" class="user-profile-badge" title="คลิกเพื่อแต่งตัวหรือสแกนใบหน้าด้วยกล้อง">
+        <div class="user-avatar-mini">
+          <img id="user-avatar-mini-img" src="" alt="" style="display:none;">
+          <span id="user-avatar-placeholder">👤</span>
+        </div>
+        <div class="user-name-role">
+          <span class="name" id="user-profile-name">ผู้เยี่ยมชม</span>
+          <span class="role" id="user-profile-role">นักเรียน</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- =========================================================================
+       MINIMAP RADAR (TOP RIGHT)
+       ========================================================================= -->
+  <div id="minimap-wrapper">
+    <div class="minimap-header">
+      <span>ผังนิทรรศการ</span>
+      <span>เรดาร์สด</span>
+    </div>
+    <canvas id="minimap-canvas" width="150" height="150"></canvas>
+  </div>
+
+  <!-- =========================================================================
+       ON-SCREEN D-PAD CONTROLS (ปุ่มกดเดินบนหน้าจอ)
+       ========================================================================= -->
+  <div id="onscreen-dpad">
+    <div class="dpad-row">
+      <button id="dpad-up" class="dpad-btn" title="เดินหน้า (W / ไ)">▲</button>
+    </div>
+    <div class="dpad-row">
+      <button id="dpad-left" class="dpad-btn" title="เลี้ยวซ้าย (A / ฟ)">◀</button>
+      <button id="dpad-jump" class="dpad-btn" title="กระโดด (Spacebar)" style="background: rgba(6, 182, 212, 0.25); color: #38bdf8;">⤴</button>
+      <button id="dpad-right" class="dpad-btn" title="เลี้ยวขวา (D / ก)">▶</button>
+    </div>
+    <div class="dpad-row">
+      <button id="dpad-down" class="dpad-btn" title="ถอยหลัง (S / ห)">▼</button>
+    </div>
+    <div class="dpad-label">กดเดิน / W A S D</div>
+  </div>
+
+  <!-- =========================================================================
+       BOTTOM ACTION HUD (SPATIAL STYLE)
+       ========================================================================= -->
+  <nav id="bottom-hud">
+    <!-- Mic Toggle -->
+    <button id="btn-mic" class="action-btn" title="เปิด/ปิดไมโครโฟน">
+      <div class="mic-pulse"></div>
+      <i>🎤</i>
+      <span>ไมค์</span>
+    </button>
+
+    <div class="hud-divider"></div>
+
+    <!-- 1. Creator Studio -->
+    <button onclick="window.spatialUI.openCreatorModal(1);" class="action-btn" style="color: #38bdf8;" title="เปิดสตูดิโอสร้างผลงานนิทรรศการ">
+      <i>🎨</i>
+      <span>สร้างนิทรรศการ</span>
+    </button>
+
+    <!-- 2. Teacher Dashboard -->
+    <button onclick="window.spatialUI.openTeacherModal();" class="action-btn" style="color: #c084fc;" title="ศูนย์ควบคุมสำหรับคุณครู & ล้างข้อมูล">
+      <i>🎓</i>
+      <span>ครูผู้สอน</span>
+    </button>
+
+    <!-- 3. Visitor Guide -->
+    <button onclick="window.spatialUI.openVisitorModal();" class="action-btn" style="color: #fbbf24;" title="คู่มือนำชมนิทรรศการและวาร์ปไปบูธ">
+      <i>🧭</i>
+      <span>ผู้เข้าชม</span>
+    </button>
+
+    <div class="hud-divider"></div>
+
+    <!-- Sticky Note Post-it -->
+    <button id="btn-sticky" class="action-btn" title="แปะกระดาษโน้ตข้อความ Post-it ในมิติ 3D">
+      <i>📝</i>
+      <span>แปะโน้ต</span>
+    </button>
+
+    <!-- Reactions -->
+    <button id="btn-reaction" class="action-btn" title="ส่งเสียงปรบมือและแสดงอารมณ์">
+      <i>😊</i>
+      <span>รีแอคชั่น</span>
+    </button>
+
+    <!-- Chat -->
+    <button id="btn-chat" class="action-btn" title="เปิดห้องแชทข้อความ">
+      <i>💬</i>
+      <span>แชท</span>
+    </button>
+
+    <!-- Avatar / Face Scanner -->
+    <button id="btn-avatar" class="action-btn" title="ปรับแต่ง Avatar & สแกนใบหน้าด้วยกล้อง">
+      <i>👤</i>
+      <span>อวตาร</span>
+    </button>
+  </nav>
+
+  <!-- Reaction Menu Popup -->
+  <div id="reaction-menu">
+    <button class="emoji-btn" data-emoji="👏" title="ปรบมือชื่นชม">👏</button>
+    <button class="emoji-btn" data-emoji="❤️" title="ส่งหัวใจ">❤️</button>
+    <button class="emoji-btn" data-emoji="🔥" title="สุดยอดมาก">🔥</button>
+    <button class="emoji-btn" data-emoji="🙋" title="ยกมือถาม">🙋</button>
+    <button class="emoji-btn" data-emoji="🎉" title="ฉลองยินดี">🎉</button>
+    <button class="emoji-btn" data-emoji="💡" title="ไอเดียเจ๋ง">💡</button>
+  </div>
+
+  <!-- Chat Drawer -->
+  <div id="chat-drawer">
+    <div class="chat-header">
+      <span>💬 ห้องสนทนานิทรรศการ</span>
+      <button class="close-btn" id="chat-close-btn">&times;</button>
+    </div>
+    <div class="chat-messages" id="chat-msg-list">
+      <div class="chat-msg system">
+        <div class="sender">
+          <span>ระบบ Spatial Metaverse</span>
+          <span class="time">10:00</span>
+        </div>
+        <div>ยินดีต้อนรับเข้าสู่นิทรรศการศาสนาสากล สามารถพิมพ์ข้อความแลกเปลี่ยนความคิดเห็นกับเพื่อนๆ ได้ที่นี่</div>
+      </div>
+    </div>
+    <div class="chat-input-bar">
+      <input type="text" id="chat-input" placeholder="พิมพ์ข้อความคุยกับเพื่อน..." maxlength="100">
+      <button id="chat-send-btn" title="ส่งข้อความ">➤</button>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       MODAL 1: LOGIN (ชื่อ, บทบาท, และหัวข้อนิทรรศการ 5 ห้องศาสนา)
+       ========================================================================= -->
+  <div id="login-modal" class="modal-backdrop show">
+    <div class="modal-box" style="max-width: 520px;">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="font-size: 26px;">🏫</span>
+          <div>
+            <h2 style="margin: 0; font-size: 17px; color: #38bdf8;">ห้องเรียนนิทรรศการ 5 ศาสนาสากล • โรงเรียนพัฒนานิคม</h2>
+            <div style="font-size: 11px; color: #fbbf24; font-weight: 600;">กลุ่มสาระการเรียนรู้สังคมศึกษา ศาสนา และวัฒนธรรม</div>
+          </div>
+        </div>
+        <button class="close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="student-login-form" onsubmit="return false;" style="display: flex; flex-direction: column; gap: 14px; margin-top: 4px;">
+          <!-- 1. Name -->
+          <div class="form-group">
+            <label style="font-weight: 700; color: #f8fafc; font-size: 14px;">1. ชื่อ-นามสกุล ของนักเรียน / คุณครู:</label>
+            <input type="text" id="login-student-name" class="form-input" placeholder="เช่น ด.ช. ภัทรพล ยิ่งเจริญ หรือ คุณครูนภัทร" required autofocus style="font-size: 15px; padding: 11px;">
+          </div>
+
+          <!-- 2. Role -->
+          <div class="form-group">
+            <label style="font-weight: 700; color: #f8fafc; font-size: 14px;">2. เลือกบทบาทของคุณ:</label>
+            <select id="login-student-role" class="form-select" style="font-size: 14px; padding: 11px;">
+              <option value="ผู้เข้าชมนิทรรศการ">🧭 นักเรียนผู้เข้าชมผลงาน (Visitor)</option>
+              <option value="นักเรียน (ผู้สร้างนิทรรศการ)">🎨 นักเรียน (ผู้สร้างนิทรรศการประจำกลุ่ม)</option>
+              <option value="คุณครูผู้สอน">👑 คุณครูผู้สอน (Teacher Host / ผู้ดูแลห้องเรียน)</option>
+            </select>
+          </div>
+
+          <!-- Creator PIN field (Only appears when role is creator) -->
+          <div id="creator-pin-group" class="form-group" style="display: none; background: rgba(245, 158, 11, 0.12); border: 1.5px solid #f59e0b; padding: 12px 14px; border-radius: 12px; box-shadow: 0 0 15px rgba(245, 158, 11, 0.15);">
+            <label style="color: #fbbf24; font-weight: 700; font-size: 13px; display: flex; align-items: center; gap: 6px;">
+              <span>🔑</span> รหัสผ่านผู้สร้างนิทรรศการประจำห้อง:
+            </label>
+            <input type="password" id="login-creator-pin" class="form-input" placeholder="กรอกรหัสผ่าน 6 หลักประจำห้อง" maxlength="8" style="background: rgba(15, 23, 42, 0.95); color: #fef08a; font-weight: 700; font-size: 16px; letter-spacing: 3px; margin-top: 6px; border-color: #f59e0b;">
+            <div id="creator-pin-room-hint" style="font-size: 11px; color: #cbd5e1; margin-top: 6px; line-height: 1.4;">
+              * กรุณากรอกรหัสผ่าน 6 หลักที่ได้รับมอบหมายจากคุณครูประจำกลุ่ม
+            </div>
+          </div>
+
+          <!-- 3. TOPIC: 5 RELIGIOUS EXHIBITION ROOMS -->
+          <div class="form-group" style="background: rgba(255, 255, 255, 0.04); padding: 12px; border-radius: 12px; border: 1px solid rgba(56, 189, 248, 0.35);">
+            <label style="color: #38bdf8; font-weight: 700; font-size: 13px; display: flex; align-items: center; gap: 8px;">
+              <span>🏛️</span> 3. เลือกหัวข้อนิทรรศการศาสนา (5 ห้อง):
+            </label>
+            <select id="login-exhibition-room" class="form-select" style="font-weight: 700; font-size: 14px; margin-top: 6px; background: rgba(15, 23, 42, 0.9); color: white; border-color: #0284c7;">
+              <option value="1">☸️ ห้อง 1: ศาสนาพุทธ (Buddhism)</option>
+              <option value="2">✝️ ห้อง 2: ศาสนาคริสต์ (Christianity)</option>
+              <option value="3">🕉️ ห้อง 3: ศาสนาพราหมณ์-ฮินดู (Brahmanism-Hinduism)</option>
+              <option value="4">☪️ ห้อง 4: ศาสนาอิสลาม (Islam)</option>
+              <option value="5">✡️ ห้อง 5: ศาสนายูดาห์ (Judaism)</option>
+            </select>
+          </div>
+
+          <!-- Login Validation / Error Message Banner -->
+          <div id="login-error-msg" style="display: none; padding: 10px 14px; border-radius: 10px; background: rgba(239, 68, 68, 0.18); border: 1.5px solid #ef4444; color: #fca5a5; font-size: 13px; font-weight: 600; text-align: center; line-height: 1.4;"></div>
+
+          <button type="button" id="btn-login-submit" class="btn btn-primary" onclick="if(window.spatialUI && window.spatialUI.submitStudentLogin){window.spatialUI.submitStudentLogin(event);}" style="padding: 13px; font-size: 15px; font-weight: 700; margin-top: 6px; cursor: pointer;">
+            🏫 เข้าสู่ห้องเรียน 3D ทันที
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       WINDOW 1: หน้าต่างสำหรับการสร้างนิทรรศการ (EXHIBITION CREATOR STUDIO)
+       ========================================================================= -->
+  <div id="creator-studio-modal" class="modal-backdrop">
+    <div class="modal-box" style="max-width: 720px;">
+      <div class="modal-header">
+        <div>
+          <h2 style="color: #38bdf8;">🎨 สตูดิโอสร้างและจัดนิทรรศการ (Creator Studio)</h2>
+          <div id="creator-modal-room-tag" style="font-size: 12px; font-weight: 600; margin-top: 2px; color: #fbbf24;">
+            ☸️ กำลังจัดแสดงใน ห้อง 1: ศาสนาพุทธ
+          </div>
+        </div>
+        <button class="close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="color: var(--text-muted); font-size: 13px;">
+          นักเรียนแต่ละกลุ่มเลือกบูธจัดแสดงที่ได้รับมอบหมาย แล้วพิมพ์ชื่อผลงาน รายละเอียดเนื้อหา และคำบรรยายเสียงลงในโลกเสมือน 3D
+        </p>
+
+        <form id="creator-studio-form" style="display: flex; flex-direction: column; gap: 14px;">
+          <!-- Select Booth Number -->
+          <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 12px; align-items: flex-end;">
+            <div class="form-group">
+              <label>เลือกตำแหน่งบูธจัดแสดง (1 - 8):</label>
+              <select id="creator-booth-select" class="form-select">
+                <option value="1">บูธที่ 1 (ห้องโถงฝั่งซ้ายหน้า)</option>
+                <option value="2">บูธที่ 2 (ห้องโถงฝั่งซ้ายหลัง)</option>
+                <option value="3">บูธที่ 3 (กำแพงตะวันตกหน้า)</option>
+                <option value="4">บูธที่ 4 (กำแพงตะวันตกหลัง)</option>
+                <option value="5">บูธที่ 5 (ห้องโถงฝั่งขวาหน้า)</option>
+                <option value="6">บูธที่ 6 (ห้องโถงฝั่งขวาหลัง)</option>
+                <option value="7">บูธที่ 7 (กำแพงตะวันออกหน้า)</option>
+                <option value="8">บูธที่ 8 (กำแพงตะวันออกหลัง)</option>
+              </select>
+            </div>
+            <div id="creator-booth-status" style="font-size: 12px; font-weight: 600; padding-bottom: 12px; color: #38bdf8;">
+              สถานะ: พื้นที่ว่าง
+            </div>
+          </div>
+
+          <!-- Title -->
+          <div class="form-group">
+            <label>ชื่อผลงาน / หัวข้อการนำเสนอ:</label>
+            <input type="text" id="creator-title" class="form-input" placeholder="เช่น การตรัสรู้และหลักอริยสัจ 4 หรือ ความรักและการเสียสละของพระเยซู" required>
+          </div>
+
+          <!-- Creator & School -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div class="form-group">
+              <label>ชื่อผู้สร้างสรรค์ / สมาชิกกลุ่ม:</label>
+              <input type="text" id="creator-name" class="form-input" placeholder="เช่น ด.ช. ภัทรพล, ด.ญ. กานดา และทีมงาน" required>
+            </div>
+            <div class="form-group">
+              <label>ระดับชั้น / โรงเรียน:</label>
+              <input type="text" id="creator-class" class="form-input" placeholder="เช่น ม.3/1 โรงเรียนพัฒนานิคม" required>
+            </div>
+          </div>
+
+          <!-- Category (Religious Studies) & Theme Color -->
+          <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 12px;">
+            <div class="form-group">
+              <label>หมวดหมู่เนื้อหาทางศาสนา:</label>
+              <select id="creator-category" class="form-select">
+                <option value="ประวัติความเป็นมาและศาสดา">📜 ประวัติความเป็นมาและศาสดา</option>
+                <option value="คัมภีร์และคติธรรมคำสอนสำคัญ">📖 คัมภีร์และคติธรรมคำสอนสำคัญ</option>
+                <option value="วันสำคัญและศาสนพิธี">🕯️ วันสำคัญและศาสนพิธี</option>
+                <option value="ศาสนสถานและศิลปวัฒนธรรม">🏛️ ศาสนสถานและศิลปวัฒนธรรม</option>
+                <option value="การประยุกต์ใช้ในชีวิตประจำวัน">🌿 การประยุกต์ใช้ในชีวิตประจำวัน</option>
+                <option value="สันติภาพและสังคมพหุวัฒนธรรม">🤝 สันติภาพและสังคมพหุวัฒนธรรม</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>สีธีมประจำบูธ:</label>
+              <select id="creator-color" class="form-select">
+                <option value="#f59e0b">สีทองอำพัน (Amber Gold)</option>
+                <option value="#06b6d4">สีฟ้านีออน (Neon Cyan)</option>
+                <option value="#8b5cf6">สีม่วง (Electric Purple)</option>
+                <option value="#10b981">สีเขียวมรกต (Emerald)</option>
+                <option value="#ea580c">สีส้มแดง (Warm Orange)</option>
+                <option value="#ec4899">สีชมพู (Rose Pink)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Concept -->
+          <div class="form-group">
+            <label>แนวคิดและเนื้อหาสำคัญของผลงาน (Concept & Description):</label>
+            <textarea id="creator-concept" class="form-textarea" placeholder="อธิบายสาระสำคัญ ข้อคิด คติธรรม หรือสรุปองค์ความรู้ที่กลุ่มศึกษาค้นคว้า..." required></textarea>
+          </div>
+
+          <!-- Presentation File Attachment (PPT / PPTX / PDF) -->
+          <div class="form-group file-upload-box">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <label style="color: #38bdf8; font-weight: 700; font-size: 13px; margin: 0; display: flex; align-items: center; gap: 6px;">
+                <span>📊</span> แนบไฟล์สไลด์นำเสนอหรือรูปภาพปกผลงาน (PDF, PPT, ภาพสไลด์ JPG/PNG):
+              </label>
+              <span style="font-size: 11px; color: var(--text-muted);">รองรับ .pdf, .ppt, .pptx, .jpg, .png</span>
+            </div>
+
+            <!-- File Upload Action -->
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+              <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                <input type="file" id="creator-pres-file-input" accept=".pdf,.ppt,.pptx,.jpg,.jpeg,.png,.webp" style="display: none;">
+                <button type="button" id="btn-choose-pres-file" class="btn btn-secondary btn-sm" style="display: flex; align-items: center; gap: 6px; padding: 7px 14px;">
+                  <span>📎</span> เลือกไฟล์สไลด์ / รูปภาพนำเสนอ
+                </button>
+                <span style="font-size: 11px; color: var(--text-dim);">หรือใส่ลิงก์สไลด์:</span>
+                <input type="url" id="creator-pres-url" class="form-input" style="flex: 1; min-width: 180px; padding: 6px 10px; font-size: 12px;" placeholder="ลิงก์ Canva, Google Slides หรือ OneDrive (ไม่บังคับ)">
+              </div>
+
+              <!-- File Status Preview Pill -->
+              <div id="creator-pres-file-preview" style="display: none; align-items: center; justify-content: space-between; background: rgba(15, 23, 42, 0.7); padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid rgba(56, 189, 248, 0.3);">
+                <div style="display: flex; align-items: center; gap: 8px; overflow: hidden;">
+                  <span id="creator-pres-file-icon" style="font-size: 18px;">📄</span>
+                  <div style="overflow: hidden;">
+                    <div id="creator-pres-file-name" style="font-size: 12px; font-weight: 600; color: #fff; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">ไฟล์.pdf</div>
+                    <div id="creator-pres-file-size" style="font-size: 10px; color: var(--text-muted);">1.2 MB</div>
+                  </div>
+                </div>
+                <button type="button" id="btn-remove-pres-file" class="btn btn-danger btn-sm" style="padding: 3px 8px; font-size: 11px;">
+                  ✕ ลบไฟล์
+                </button>
+              </div>
+
+            </div>
+
+            <div style="font-size: 11px; color: #38bdf8; margin-top: 6px; line-height: 1.4;">
+              💡 <em>ไฟล์สไลด์นำเสนอที่แนบจะถูกเปิดแสดงในจอทีวี 16:9 เพื่อให้ผู้เข้าชมสามารถคลิกอ่านและกดเปลี่ยนหน้าสไลด์ได้ทันที</em>
+            </div>
+          </div>
+
+          <!-- 5-Question Quiz Builder for Creator -->
+          <div class="form-group rubric-card" style="background: rgba(15, 23, 42, 0.75); border: 1px solid rgba(245, 158, 11, 0.4);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <label style="color: #fbbf24; font-weight: 700; font-size: 13px; margin: 0; display: flex; align-items: center; gap: 6px;">
+                <span>✍️</span> ตั้งคำถาม 5 ข้อสำหรับผู้เข้าชมเช็คอิน (5-Question Quiz):
+              </label>
+              <button type="button" id="btn-reset-default-quiz" class="btn btn-secondary btn-sm" style="font-size: 11px; padding: 4px 8px;">
+                🔄 ใช้คำถามมาตรฐานประจำห้อง
+              </button>
+            </div>
+            <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 8px;">
+              ผู้เข้าชมบูธจะต้องตอบคำถาม 5 ข้อนี้ให้ถูกต้องอย่างน้อย <strong>3 จาก 5 ข้อ (≥ 60%)</strong> จึงจะถือว่าเช็คอินสำเร็จ
+            </div>
+            <div id="creator-quiz-fields" style="display: flex; flex-direction: column; gap: 10px; max-height: 250px; overflow-y: auto; padding-right: 4px;">
+              <!-- 5 Questions fields injected by ui.js -->
+            </div>
+          </div>
+
+          <!-- Audio Guide Script -->
+          <div class="form-group">
+            <label>สคริปต์คำบรรยายเสียง (Audio Guide Script) ภาษาไทย:</label>
+            <input type="text" id="creator-audio" class="form-input" placeholder="ข้อความสั้นๆ ที่ระบบจะอ่านออกเสียงอัตโนมัติเมื่อมีคนมาชมผลงาน">
+          </div>
+
+          <div style="display: flex; gap: 10px; margin-top: 6px;">
+            <button type="submit" class="btn btn-primary" style="flex: 2; padding: 12px;">
+              🚀 ติดตั้งผลงานลงในบูธ 3D ทันที
+            </button>
+            <button type="button" id="btn-teleport-to-booth" class="btn btn-secondary" style="flex: 1;">
+              🚶 วาร์ปไปดูบูธนี้
+            </button>
+            <button type="button" id="btn-reset-this-booth" class="btn btn-danger" style="flex: 1;">
+              🗑️ ล้างบูธนี้
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       MODAL: TEACHER SECURITY PIN GATE (ครูสามารถเข้าถึงได้คนเดียว)
+       ========================================================================= -->
+  <div id="teacher-pin-modal" class="modal-backdrop">
+    <div class="modal-box" style="max-width: 440px;">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="font-size: 26px;">🔐</span>
+          <div>
+            <h2 style="color: #c084fc; font-size: 16px; margin: 0;">ยืนยันตัวตนสำหรับคุณครูผู้สอน</h2>
+            <div style="font-size: 11px; color: #cbd5e1;">Teacher Security Authentication</div>
+          </div>
+        </div>
+        <button class="close-btn">&times;</button>
+      </div>
+      <div class="modal-body" style="text-align: center;">
+        <div style="background: rgba(192, 132, 252, 0.1); border: 1px solid rgba(192, 132, 252, 0.35); border-radius: 10px; padding: 12px; font-size: 12px; color: #e9d5ff; line-height: 1.5; margin-bottom: 12px;">
+          🔒 <strong>สงวนสิทธิ์เฉพาะคุณครูผู้สอนเท่านั้น:</strong><br>
+          ข้อมูลสถิติรายบุคคล คะแนนการเช็คอิน และรายชื่อผู้กดถูกใจถูกจำกัดการเข้าถึง กรุณากรอกรหัสผ่านครูผู้สอน
+        </div>
+
+        <form id="teacher-pin-form" style="display: flex; flex-direction: column; gap: 12px;">
+          <div class="form-group" style="text-align: left;">
+            <label style="color: #c084fc; font-weight: 700;">รหัสผ่านครูผู้สอน (Teacher Master PIN):</label>
+            <input type="password" id="teacher-pin-input" class="form-input" placeholder="กรอกรหัสผ่านครู (เช่น 1234 หรือ ครูพัฒนานิคม)" style="font-size: 16px; letter-spacing: 2px; text-align: center; border-color: #a855f7;" required autofocus>
+            <div style="font-size: 11px; color: var(--text-dim); margin-top: 4px;">* รหัสผ่าน: <strong>1234</strong> หรือ <strong>ครูพัฒนานิคม</strong></div>
+          </div>
+          <div id="teacher-pin-error" style="display: none; color: #f87171; font-size: 12px; font-weight: 600;">
+            ⛔ รหัสผ่านไม่ถูกต้อง! ระบบอนุญาตให้ครูผู้สอนเข้าถึงได้เพียงคนเดียว
+          </div>
+          <button type="submit" class="btn btn-primary" style="padding: 12px; font-size: 14px; font-weight: 700; background: linear-gradient(135deg, #9333ea, #7c3aed);">
+            🔓 ปลดล็อกเข้าสู่ศูนย์ควบคุมครูผู้สอน
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       WINDOW 2: หน้าต่างสำหรับครูผู้สอน (TEACHER MANAGEMENT DASHBOARD)
+       ========================================================================= -->
+  <div id="teacher-modal" class="modal-backdrop">
+    <div class="modal-box" style="max-width: 860px; max-height: 90vh;">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="font-size: 26px;">🎓</span>
+          <div>
+            <h2 style="color: #c084fc; font-size: 17px; margin: 0;">ศูนย์ควบคุมและสถิตินิทรรศการสำหรับคุณครู</h2>
+            <div style="font-size: 11px; color: #fbbf24; font-weight: 600;">
+              โรงเรียนพัฒนานิคม • เข้าถึงเฉพาะคุณครูผู้สอน (Teacher Master Access)
+            </div>
+          </div>
+        </div>
+        <div style="display: flex; gap: 8px; align-items: center;">
+          <button id="btn-teacher-lock" class="btn btn-secondary btn-sm" title="ล็อกหน้าต่างและออกจากระบบครู" style="font-size: 11px;">
+            🔒 ล็อกหน้าจอ
+          </button>
+          <button class="close-btn">&times;</button>
+        </div>
+      </div>
+      <div class="modal-body">
+        <!-- 5 Master Tabs for Teacher -->
+        <div class="teacher-tabs-nav" id="teacher-main-tabs">
+          <button class="teacher-main-tab-btn active" data-tab="checkins">
+            <span>📋</span> รายชื่อนักเรียนเช็คอิน
+          </button>
+          <button class="teacher-main-tab-btn" data-tab="likes">
+            <span>❤️</span> รายชื่อผู้กดถูกใจ
+          </button>
+          <button class="teacher-main-tab-btn" data-tab="notes">
+            <span>📝</span> รายชื่อผู้แปะ Post-it
+          </button>
+          <button class="teacher-main-tab-btn" data-tab="analytics">
+            <span>📊</span> สถิติภาพรวม
+          </button>
+          <button class="teacher-main-tab-btn" data-tab="control">
+            <span>⚙️</span> ควบคุมห้องเรียน
+          </button>
+        </div>
+
+        <!-- ================= TAB 1: CHECK-INS ================= -->
+        <div id="teacher-tab-content-checkins" class="teacher-tab-panel">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 10px;">
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <label style="font-size: 12px; font-weight: 600;">เลือกห้องศาสนา:</label>
+              <select id="teacher-checkin-room-filter" class="form-select" style="padding: 6px 10px; font-size: 12px;">
+                <option value="all">🌟 ทุกห้องนิทรรศการ (1-5)</option>
+                <option value="1">☸️ ห้อง 1: ศาสนาพุทธ</option>
+                <option value="2">✝️ ห้อง 2: ศาสนาคริสต์</option>
+                <option value="3">🕉️ ห้อง 3: ศาสนาพราหมณ์-ฮินดู</option>
+                <option value="4">☪️ ห้อง 4: ศาสนาอิสลาม</option>
+                <option value="5">✡️ ห้อง 5: ศาสนายูดาห์</option>
+              </select>
+            </div>
+            <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+              <input type="text" id="teacher-checkin-search" class="form-input" placeholder="🔍 ค้นหาชื่อ หรือ รหัสนักเรียน..." style="padding: 6px 12px; font-size: 12px; width: 200px;">
+              <button id="btn-export-checkins-csv" class="btn btn-primary btn-sm" style="display: flex; align-items: center; gap: 6px; padding: 6px 12px; font-size: 12px; background: #0284c7;">
+                <span>📥</span> ส่งออกไฟล์ CSV
+              </button>
+              <button id="btn-clear-checkins" class="btn btn-danger btn-sm" style="display: flex; align-items: center; gap: 6px; padding: 6px 12px; font-size: 12px;">
+                <span>🗑️</span> ล้างข้อมูลเช็คอิน
+              </button>
+            </div>
+          </div>
+
+          <div class="teacher-table-wrapper">
+            <table class="teacher-table">
+              <thead>
+                <tr>
+                  <th style="width: 40px;">#</th>
+                  <th>วัน-เวลา</th>
+                  <th>รหัสนักเรียน</th>
+                  <th>ชื่อ-นามสกุล</th>
+                  <th>ชั้น/ห้อง</th>
+                  <th>ห้องศาสนา & บูธ</th>
+                  <th style="text-align: center;">คะแนน (เต็ม 5)</th>
+                  <th style="text-align: center;">สถานะ</th>
+                  <th style="text-align: center;">จัดการ</th>
+                </tr>
+              </thead>
+              <tbody id="teacher-checkins-tbody">
+                <!-- Rendered dynamically -->
+              </tbody>
+            </table>
+          </div>
+          <div id="teacher-checkin-empty" style="display: none; padding: 24px; text-align: center; color: var(--text-muted); font-size: 13px;">
+            ยังไม่มีนักเรียนเช็คอินในห้องนี้
+          </div>
+        </div>
+
+        <!-- ================= TAB 2: LIKES ================= -->
+        <div id="teacher-tab-content-likes" class="teacher-tab-panel" style="display: none;">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 10px;">
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <label style="font-size: 12px; font-weight: 600;">เลือกห้องศาสนา:</label>
+              <select id="teacher-likes-room-filter" class="form-select" style="padding: 6px 10px; font-size: 12px;">
+                <option value="all">🌟 ทุกห้องนิทรรศการ (1-5)</option>
+                <option value="1">☸️ ห้อง 1: ศาสนาพุทธ</option>
+                <option value="2">✝️ ห้อง 2: ศาสนาคริสต์</option>
+                <option value="3">🕉️ ห้อง 3: ศาสนาพราหมณ์-ฮินดู</option>
+                <option value="4">☪️ ห้อง 4: ศาสนาอิสลาม</option>
+                <option value="5">✡️ ห้อง 5: ศาสนายูดาห์</option>
+              </select>
+            </div>
+            <div style="display: flex; gap: 10px; align-items: center;">
+              <div id="teacher-likes-count-badge" style="font-size: 12px; color: #f43f5e; font-weight: 700;">
+                ❤️ ทั้งหมด 0 ครั้ง
+              </div>
+              <button id="btn-clear-likes" class="btn btn-danger btn-sm" style="display: flex; align-items: center; gap: 6px; padding: 6px 12px; font-size: 12px;">
+                <span>🗑️</span> ล้างข้อมูลถูกใจ
+              </button>
+            </div>
+          </div>
+
+          <div class="teacher-table-wrapper">
+            <table class="teacher-table">
+              <thead>
+                <tr>
+                  <th style="width: 40px;">#</th>
+                  <th>วัน-เวลา</th>
+                  <th>รหัสนักเรียน</th>
+                  <th>ชื่อ-นามสกุล</th>
+                  <th>ชั้น/ห้อง</th>
+                  <th>บูธที่กดถูกใจ</th>
+                  <th>ห้องศาสนา</th>
+                  <th style="text-align: center;">จัดการ</th>
+                </tr>
+              </thead>
+              <tbody id="teacher-likes-tbody">
+                <!-- Rendered dynamically -->
+              </tbody>
+            </table>
+          </div>
+          <div id="teacher-likes-empty" style="display: none; padding: 24px; text-align: center; color: var(--text-muted); font-size: 13px;">
+            ยังไม่มีการกดถูกใจในห้องนี้
+          </div>
+        </div>
+
+        <!-- ================= TAB 3: STICKY NOTES ================= -->
+        <div id="teacher-tab-content-notes" class="teacher-tab-panel" style="display: none;">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 10px;">
+            <span style="font-size: 13px; font-weight: 600; color: #cbd5e1;">📝 รายการข้อความ Post-it ทั้งหมดในมิติ 3D:</span>
+            <div style="display: flex; gap: 10px; align-items: center;">
+              <span id="teacher-notes-count-badge" style="font-size: 12px; color: #38bdf8; font-weight: 700;">ทั้งหมด 0 ข้อความ</span>
+              <button id="btn-clear-all-notes" class="btn btn-danger btn-sm" style="display: flex; align-items: center; gap: 6px; padding: 6px 12px; font-size: 12px;">
+                <span>🗑️</span> ล้างโน้ตทั้งหมด
+              </button>
+            </div>
+          </div>
+
+          <div class="teacher-table-wrapper">
+            <table class="teacher-table">
+              <thead>
+                <tr>
+                  <th style="width: 40px;">#</th>
+                  <th>วัน-เวลา</th>
+                  <th>ผู้เขียน (รหัส / ชื่อ)</th>
+                  <th>ระดับชั้น</th>
+                  <th>ข้อความโน้ต</th>
+                  <th style="text-align: center;">❤️ ถูกใจ</th>
+                  <th style="text-align: center;">จัดการ</th>
+                </tr>
+              </thead>
+              <tbody id="teacher-notes-tbody">
+                <!-- Rendered dynamically -->
+              </tbody>
+            </table>
+          </div>
+          <div id="teacher-notes-empty" style="display: none; padding: 24px; text-align: center; color: var(--text-muted); font-size: 13px;">
+            ยังไม่มีผู้แปะโน้ต
+          </div>
+        </div>
+
+        <!-- ================= TAB 4: ANALYTICS ================= -->
+        <div id="teacher-tab-content-analytics" class="teacher-tab-panel" style="display: none;">
+          <div class="teacher-kpi-grid">
+            <div class="stat-kpi-card">
+              <div class="stat-kpi-number" id="kpi-total-checkins">0</div>
+              <div class="stat-kpi-label">จำนวนการเช็คอิน</div>
+            </div>
+            <div class="stat-kpi-card">
+              <div class="stat-kpi-number" id="kpi-unique-students" style="color: #a855f7;">0</div>
+              <div class="stat-kpi-label">จำนวนนักเรียนที่เข้าชม</div>
+            </div>
+            <div class="stat-kpi-card">
+              <div class="stat-kpi-number" id="kpi-pass-rate" style="color: #10b981;">0%</div>
+              <div class="stat-kpi-label">อัตราผ่านเกณฑ์ (≥3 ข้อ)</div>
+            </div>
+            <div class="stat-kpi-card">
+              <div class="stat-kpi-number" id="kpi-avg-score" style="color: #fbbf24;">0.0</div>
+              <div class="stat-kpi-label">คะแนนเฉลี่ย (เต็ม 5)</div>
+            </div>
+            <div class="stat-kpi-card">
+              <div class="stat-kpi-number" id="kpi-total-likes" style="color: #f43f5e;">0</div>
+              <div class="stat-kpi-label">ยอดกดถูกใจรวม</div>
+            </div>
+          </div>
+
+          <div class="rubric-card" style="margin-bottom: 12px;">
+            <div style="font-weight: 700; font-size: 13px; color: #fbbf24; margin-bottom: 8px;">
+              🏆 บูธยอดนิยมที่มีนักเรียนเข้าเช็คอินมากที่สุด (Top Booths):
+            </div>
+            <div id="teacher-top-booths-list" style="display: flex; flex-direction: column; gap: 8px;">
+              <!-- Rendered dynamically -->
+            </div>
+          </div>
+        </div>
+
+        <!-- ================= TAB 5: CLASSROOM CONTROL ================= -->
+        <div id="teacher-tab-content-control" class="teacher-tab-panel" style="display: none;">
+          <!-- Room Selector Tabs for Teacher -->
+          <div class="form-group" style="margin-bottom: 10px;">
+            <label style="font-size: 12px; font-weight: 700; color: #cbd5e1;">สลับตรวจงานใน 5 ห้องนิทรรศการศาสนา:</label>
+            <div class="room-tabs-container" id="teacher-room-tabs">
+              <button class="teacher-tab-btn active" data-room="1">☸️ ห้อง 1: พุทธ</button>
+              <button class="teacher-tab-btn" data-room="2">✝️ ห้อง 2: คริสต์</button>
+              <button class="teacher-tab-btn" data-room="3">🕉️ ห้อง 3: ฮินดู</button>
+              <button class="teacher-tab-btn" data-room="4">☪️ ห้อง 4: อิสลาม</button>
+              <button class="teacher-tab-btn" data-room="5">✡️ ห้อง 5: ยูดาห์</button>
+            </div>
+          </div>
+
+          <!-- 1. Quick Broadcast -->
+          <form id="teacher-broadcast-form" class="rubric-card" style="margin-bottom: 10px;">
+            <label style="font-weight: 600; font-size: 13px; margin-bottom: 6px; display: block;">
+              📢 ประกาศข้อความด่วนถึงนักเรียนทุกคน (Broadcast Alert):
+            </label>
+            <div style="display: flex; gap: 8px;">
+              <input type="text" id="teacher-broadcast-input" class="form-input" style="flex:1;" placeholder="เช่น ขอให้นักเรียนกลุ่มศาสนาพุทธเตรียมนำเสนอที่หน้าเวที">
+              <button type="submit" class="btn btn-primary">ส่งประกาศ</button>
+            </div>
+          </form>
+
+          <!-- 2. Actions & Clear Options -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 10px;">
+            <button id="btn-teacher-summon-all" class="btn btn-secondary btn-sm" style="padding: 10px;">
+              👥 เรียกรวมตัวที่หอประชุม
+            </button>
+            <button id="btn-teacher-clear-room" class="btn btn-danger btn-sm" style="padding: 10px;">
+              🗑️ ล้างเฉพาะห้องนี้
+            </button>
+            <button id="btn-teacher-clear-all" class="btn btn-danger btn-sm" style="padding: 10px;">
+              ⚠️ ล้างทั้ง 5 ห้อง
+            </button>
+          </div>
+
+          <!-- 3. Booth Review Table -->
+          <div class="rubric-card" style="margin-bottom: 10px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <span style="font-weight: 700; font-size: 14px;">📋 ตรวจสอบผลงานบูธที่ 1 - 8 ในห้องนี้:</span>
+              <span style="font-size: 12px; color: var(--primary);">คลิกแก้ไขหรือวาร์ปไปตรวจได้ทันที</span>
+            </div>
+            <div id="teacher-booth-list" style="max-height: 180px; overflow-y: auto;">
+              <!-- Rendered by ui.js -->
+            </div>
+          </div>
+
+          <!-- 4. Crowd Simulator -->
+          <div class="rubric-card">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+              <label style="font-weight: 600; font-size: 13px;">👥 ปรับจำนวนผู้เข้าชมจำลองในพื้นที่ (Crowd Simulator):</label>
+              <span id="teacher-crowd-label" style="font-weight: 700; color: var(--primary);">0 คน</span>
+            </div>
+            <input type="range" id="teacher-crowd-slider" min="0" max="100" value="0" step="5" style="width: 100%;">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       WINDOW 3: หน้าต่างสำหรับผู้เข้าชม (VISITOR GUIDE & DIRECTORY)
+       ========================================================================= -->
+  <div id="visitor-modal" class="modal-backdrop">
+    <div class="modal-box" style="max-width: 760px;">
+      <div class="modal-header">
+        <div>
+          <h2 style="color: #fbbf24;">🧭 สารบัญและคู่มือนำชมนิทรรศการสำหรับผู้เข้าชม</h2>
+          <div id="visitor-current-room-title" style="font-size: 12px; font-weight: 700; color: #38bdf8; margin-top: 2px;">
+            ☸️ สารบัญ ห้อง 1: ศาสนาพุทธ
+          </div>
+        </div>
+        <button class="close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <!-- Room Selector Tabs for Visitors -->
+        <div class="form-group">
+          <label style="font-size: 12px; font-weight: 700; color: #cbd5e1;">เลือกเดินชมห้องนิทรรศการศาสนา (5 ห้อง):</label>
+          <div class="room-tabs-container" id="visitor-room-tabs">
+            <button class="visitor-tab-btn active" data-room="1">☸️ ห้อง 1: พุทธ</button>
+            <button class="visitor-tab-btn" data-room="2">✝️ ห้อง 2: คริสต์</button>
+            <button class="visitor-tab-btn" data-room="3">🕉️ ห้อง 3: ฮินดู</button>
+            <button class="visitor-tab-btn" data-room="4">☪️ ห้อง 4: อิสลาม</button>
+            <button class="visitor-tab-btn" data-room="5">✡️ ห้อง 5: ยูดาห์</button>
+          </div>
+        </div>
+
+        <!-- Quick Fast-Travel Spots -->
+        <div style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px;">
+          <button class="btn btn-secondary btn-sm" onclick="window.spatialUI.app.player.position.set(0,0,5); window.spatialUI.closeModal('visitor-modal');">
+            🏛️ ห้องโถงกลาง
+          </button>
+          <button class="btn btn-secondary btn-sm" onclick="window.spatialUI.app.player.position.set(0,0,22); window.spatialUI.closeModal('visitor-modal');">
+            🎭 หอประชุม
+          </button>
+          <button class="btn btn-secondary btn-sm" onclick="window.spatialUI.app.player.position.set(0,0,-18); window.spatialUI.closeModal('visitor-modal');">
+            🗿 แท่นประติมากรรม 3D
+          </button>
+          <button class="btn btn-secondary btn-sm" onclick="window.spatialUI.app.player.position.set(-33,0,0); window.spatialUI.closeModal('visitor-modal');">
+            📝 กำแพงโพสต์อิท
+          </button>
+          <button class="btn btn-secondary btn-sm" onclick="window.spatialUI.app.player.position.set(0,0,-44); window.spatialUI.closeModal('visitor-modal');">
+            🌌 ระเบียงชมวิว
+          </button>
+        </div>
+
+        <div class="rubric-card">
+          <span style="font-weight: 700; font-size: 14px; margin-bottom: 8px; display: block;">
+            📍 สารบัญบูธนิทรรศการในห้องนี้ (คลิกวาร์ปไปชมบูธได้ทันที):
+          </span>
+          <div id="visitor-directory-list" style="max-height: 250px; overflow-y: auto;">
+            <!-- Rendered by ui.js -->
+          </div>
+        </div>
+
+        <div class="rubric-card" style="display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <div style="font-weight: 600; font-size: 13px;">💡 เคล็ดลับการรับชม:</div>
+            <div style="font-size: 11px; color: var(--text-muted);">เดินเข้าไปใกล้ชิ้นงานแล้วกดปุ่ม [E] เพื่อฟังเสียง Audio Guide หรือแปะแผ่น Post-it ให้กำลังใจเพื่อนๆ ได้เลยครับ</div>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="window.spatialUI.openModal('sticky-modal'); window.spatialUI.closeModal('visitor-modal');">
+            📝 แปะโน้ตให้กำลังใจ
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       MODAL: ARTWORK INSPECTOR & AUDIO GUIDE
+       ========================================================================= -->
+  <div id="artwork-inspector-modal" class="modal-backdrop">
+    <div class="modal-box" style="max-width: 720px;">
+      <div class="modal-header">
+        <h2 id="artwork-modal-title">ชื่อผลงานนิทรรศการ</h2>
+        <button class="close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+          <div>
+            <div class="artwork-title-large" id="artwork-modal-creator">โดย: ผู้สร้างสรรค์</div>
+            <div style="color: var(--primary); font-size: 13px; font-weight: 500;" id="artwork-modal-class">ชั้นเรียน</div>
+          </div>
+          <div class="artwork-meta-badge" style="display: flex; gap: 8px; align-items: center;">
+            <span id="artwork-modal-category" class="badge-booth">หมวดหมู่</span>
+            <span id="artwork-modal-likes" style="font-weight: 700; color: #f59e0b;">0 ถูกใจ</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>แนวคิดและรายละเอียดผลงาน (Concept):</label>
+          <div class="rubric-card" id="artwork-modal-concept" style="line-height: 1.6; max-height: 140px; overflow-y: auto;">
+            คำอธิบายผลงาน...
+          </div>
+        </div>
+
+        <!-- Attached Presentation Document / Slides -->
+        <div id="artwork-modal-presentation-box" class="form-group" style="display: none; margin-top: 10px;">
+          <label style="font-weight: 600; font-size: 13px; color: #38bdf8; display: flex; align-items: center; gap: 6px;">
+            <span>📊</span> เอกสาร / สไลด์ประกอบการนำเสนอผลงาน:
+          </label>
+          <div class="presentation-card">
+            <div style="display: flex; align-items: center; gap: 10px; overflow: hidden;">
+              <span id="artwork-modal-file-icon" style="font-size: 26px;">📄</span>
+              <div style="overflow: hidden;">
+                <div id="artwork-modal-file-name" style="font-weight: 600; font-size: 13px; color: #fff; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+                  ไฟล์นำเสนอ.pdf
+                </div>
+                <div style="display: flex; gap: 6px; align-items: center; margin-top: 2px;">
+                  <span id="artwork-modal-file-badge" class="file-badge-pill file-badge-pdf">PDF</span>
+                  <span id="artwork-modal-file-size" style="font-size: 11px; color: var(--text-muted);">1.2 MB</span>
+                </div>
+              </div>
+            </div>
+            <div style="display: flex; gap: 8px; flex-shrink: 0;">
+              <button id="btn-view-presentation" type="button" class="btn btn-primary btn-sm" style="display: flex; align-items: center; gap: 5px; font-weight: 700; background: linear-gradient(135deg, #0284c7, #2563eb);">
+                📺 เปิดดูสไลด์ & ฟังเสียงบรรยาย (จอทีวี 16:9)
+              </button>
+              <button id="btn-download-presentation" type="button" class="btn btn-secondary btn-sm" style="display: flex; align-items: center; gap: 5px;">
+                📥 ดาวน์โหลด
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Booth Check-in & 5-Question Quiz Section -->
+        <div id="artwork-modal-quiz-card" class="quiz-card" style="margin-top: 10px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <div style="font-weight: 700; font-size: 13px; color: #38bdf8; display: flex; align-items: center; gap: 6px;">
+              <span>📝</span> เช็คอินการเข้าศึกษา & แบบทดสอบประจำบูธ
+            </div>
+            <span id="artwork-quiz-status-badge" class="badge-booth" style="color: #fbbf24; border-color: #fbbf24; font-size: 11px;">
+              ยังไม่ได้เช็คอิน
+            </span>
+          </div>
+
+          <div id="artwork-quiz-prompt-box">
+            <p style="font-size: 12px; color: var(--text-muted); line-height: 1.5; margin-bottom: 8px;">
+              ยืนยันการเข้ามาศึกษาในบูธนี้ โดยทำแบบทดสอบ 5 ข้อ ต้องตอบถูกอย่างน้อย <strong>3 จาก 5 ข้อ (≥ 60%)</strong> จึงจะถือว่าเช็คอินสำเร็จ
+            </p>
+            <button id="btn-start-booth-quiz" type="button" class="btn btn-primary btn-sm" style="width: 100%; padding: 9px 12px; font-weight: 700;">
+              ✍️ เริ่มทำแบบทดสอบ 5 ข้อ เพื่อเช็คอินบูธนี้
+            </button>
+          </div>
+
+          <!-- Active Quiz Container -->
+          <div id="artwork-quiz-container" style="display: none; margin-top: 10px;">
+            <div id="artwork-quiz-questions-list" style="display: flex; flex-direction: column; gap: 10px; max-height: 250px; overflow-y: auto; padding-right: 4px;">
+              <!-- 5 Questions rendered dynamically -->
+            </div>
+            <div id="quiz-validation-msg" style="display: none; margin-top: 8px; padding: 8px 12px; background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.6); border-radius: 6px; color: #fca5a5; font-size: 12px; font-weight: 600;"></div>
+            <div style="display: flex; gap: 8px; margin-top: 10px;">
+              <button id="btn-submit-booth-quiz" type="button" class="btn btn-primary" style="flex: 2; padding: 10px; font-weight: 700; background: #10b981;">
+                ✅ ส่งคำตอบเพื่อยืนยันการเช็คอิน
+              </button>
+              <button id="btn-cancel-booth-quiz" type="button" class="btn btn-secondary btn-sm" style="flex: 1;">
+                ยกเลิก
+              </button>
+            </div>
+          </div>
+
+          <!-- Quiz Feedback Banner -->
+          <div id="artwork-quiz-result-box" style="display: none; margin-top: 8px; font-size: 12px; padding: 10px; border-radius: 8px;">
+            <!-- Rendered dynamically -->
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap;">
+          <button id="btn-artwork-audio" class="btn btn-primary" style="flex: 1.2;" onclick="window.spatialUI.app.exhibition.playAudioGuide(window.spatialUI.currentInspectedArt.audioText || window.spatialUI.currentInspectedArt.concept);">
+            🔊 ฟังคำบรรยายเสียง
+          </button>
+          <button id="btn-artwork-like" class="btn btn-secondary" style="flex: 1;" onclick="window.spatialUI.handleLikeArtwork();">
+            ❤️ ถูกใจ
+          </button>
+          <button id="btn-artwork-comment" class="btn btn-secondary" style="flex: 1.2; color: #38bdf8; border-color: rgba(56, 189, 248, 0.4);" onclick="window.spatialUI.openCommentForCurrentBooth();">
+            📝 แปะโน้ต
+          </button>
+          <button id="btn-artwork-edit" class="btn btn-secondary" style="flex: 1;">
+            ✏️ แก้ไขผลงาน
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       MODAL: WIDESCREEN SMART TV PRESENTATION VIEWER (จอทีวี 16:9 สำหรับมือถือ & ไอแพด)
+       ========================================================================= -->
+  <div id="doc-viewer-modal" class="modal-backdrop">
+    <div class="modal-box">
+      <!-- Sleek TV Frame (กรอบทีวีอัจฉริยะ 16:9) -->
+      <div class="tv-frame">
+        <!-- TV Top Bezel Bar -->
+        <div class="tv-bezel-top">
+          <div style="display: flex; align-items: center; gap: 8px; overflow: hidden;">
+            <span class="tv-logo-badge">📺 จอทีวี 16:9</span>
+            <div class="tv-header-info">
+              <span id="doc-viewer-title" class="tv-title-text">สไลด์นำเสนอผลงาน</span>
+              <span id="doc-viewer-subtitle" class="tv-subtitle-text">โหมดนำเสนอสำหรับผู้เข้าชมและคุณครู</span>
+            </div>
+          </div>
+          <div style="display: flex; gap: 6px; align-items: center; flex-shrink: 0; flex-wrap: wrap;">
+            <button id="btn-tv-quiz-top" type="button" class="tv-btn-action" style="background: rgba(16, 185, 129, 0.25); border-color: #10b981; color: #34d399; font-weight: 700;" title="ทำแบบทดสอบ 5 ข้อ เพื่อเช็คอิน">
+              ✍️ เช็คอิน (แบบทดสอบ)
+            </button>
+            <button id="btn-tv-like-top" type="button" class="tv-btn-action" style="background: rgba(244, 63, 94, 0.2); border-color: #f43f5e; color: #fb7185; font-weight: 700;" title="กดถูกใจผลงานนี้">
+              ❤️ ถูกใจ
+            </button>
+            <button id="btn-tv-audio-top" type="button" class="tv-btn-action tv-btn-audio" title="ฟังเสียงบรรยายผลงาน (Audio Guide)">
+              🔊 ฟังเสียงบรรยาย
+            </button>
+            <button id="btn-tv-info-top" type="button" class="tv-btn-action" title="ดูรายละเอียดแนวคิดและแปะโน้ต">
+              ℹ️ แนวคิด
+            </button>
+            <button id="btn-tv-fullscreen" type="button" class="tv-btn-action" title="ขยายเต็มจอทีวี">⛶ เต็มจอ</button>
+            <button id="btn-tv-open-tab" type="button" class="tv-btn-action" title="เปิดดูสไลด์ในหน้าต่างใหม่">↗️ แยกหน้าต่าง</button>
+            <button id="btn-doc-download" type="button" class="tv-btn-action" title="ดาวน์โหลดไฟล์ต้นฉบับ">📥 โหลด</button>
+            <button class="close-btn" style="color: #fff; font-size: 22px; padding: 0 6px; margin-left: 4px;">&times;</button>
+          </div>
+        </div>
+
+        <!-- TV 16:9 Screen Display (จอภาพ 16:9 ปรับขนาด 100% เหมาะกับมือถือและไอแพด) -->
+        <div class="tv-screen" id="tv-screen-box">
+          <!-- TV Loading Overlay -->
+          <div id="tv-loader" class="tv-screen-overlay" style="display: none;">
+            <div class="tv-spinner"></div>
+            <div style="font-weight: 600; font-size: 13px; color: #38bdf8; margin-top: 10px;">
+              📺 กำลังเชื่อมต่อสัญญาณภาพสไลด์...
+            </div>
+          </div>
+
+          <!-- 1. Canvas for PDF.js Rendering -->
+          <canvas id="tv-canvas" style="display: none;"></canvas>
+
+          <!-- 2. Image element for Image Slides (JPG / PNG) -->
+          <img id="tv-img-slide" src="" alt="Slide Image" style="display: none;">
+
+          <!-- 3. Iframe for Web/Drive/Fallback viewer -->
+          <iframe id="doc-viewer-iframe" src="" style="display: none;" allowfullscreen></iframe>
+
+          <!-- 4. Fallback Box for PPT / Offline files -->
+          <div id="doc-viewer-fallback" style="display: none;" class="tv-fallback-box">
+            <div style="font-size: 44px; margin-bottom: 6px;">📊</div>
+            <h3 id="doc-fallback-name" style="color: #fbbf24; font-size: 15px; margin-bottom: 4px;">สไลด์นำเสนอ PowerPoint (PPT/PPTX)</h3>
+            <p style="color: #94a3b8; font-size: 12px; max-width: 440px; margin-bottom: 12px; line-height: 1.4;">
+              ไฟล์สไลด์นำเสนอถูกแนบไว้กับผลงานนี้ สามารถดาวน์โหลดไปเปิดหรือเปิดดูผ่านเบราว์เซอร์ได้ทันที
+            </p>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;">
+              <button id="btn-fallback-download" type="button" class="btn btn-primary btn-sm">
+                📥 ดาวน์โหลดไฟล์สไลด์
+              </button>
+              <button id="btn-doc-open-tab" type="button" class="btn btn-secondary btn-sm">
+                ↗️ เปิดในหน้าต่างใหม่
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- TV Bottom Remote Control Bar (รีโมทควบคุมสไลด์ทีวี) -->
+        <div class="tv-remote-bar">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span class="tv-led-indicator" title="สถานะจอทีวี: ออนไลน์"></span>
+            <button id="btn-tv-audio-bottom" type="button" class="tv-btn-action tv-btn-audio" title="กดเพื่อฟังหรือหยุดเสียงบรรยายผลงาน">
+              🔊 ฟังเสียงบรรยาย (Audio Guide)
+            </button>
+          </div>
+
+          <!-- Slide Navigation Controls -->
+          <div class="tv-nav-controls" id="tv-nav-group">
+            <button id="btn-tv-prev-slide" type="button" class="tv-nav-btn" title="สไลด์ก่อนหน้า (หรือปัดซ้าย)">
+              ◀ ย้อนกลับ
+            </button>
+            <div class="tv-page-pill" id="tv-page-indicator">
+              สไลด์ <span id="tv-current-page">1</span> / <span id="tv-total-pages">1</span>
+            </div>
+            <button id="btn-tv-next-slide" type="button" class="tv-nav-btn" title="สไลด์ถัดไป (หรือปัดขวา)">
+              ถัดไป ▶
+            </button>
+          </div>
+
+          <div style="display: flex; gap: 6px; align-items: center;">
+            <button id="btn-tv-quiz-bottom" type="button" class="tv-btn-action" style="background: rgba(16, 185, 129, 0.25); border-color: #10b981; color: #34d399; font-weight: 700;" title="ทำแบบทดสอบเช็คอิน">
+              ✍️ เช็คอิน
+            </button>
+            <button id="btn-tv-like-bottom" type="button" class="tv-btn-action" style="background: rgba(244, 63, 94, 0.2); border-color: #f43f5e; color: #fb7185; font-weight: 700;" title="กดถูกใจ">
+              ❤️ ถูกใจ
+            </button>
+            <button id="btn-tv-open-tab" type="button" class="tv-btn-action" title="เปิดแท็บใหม่">↗️ แท็บใหม่</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       MODAL: 3D STICKY NOTES CREATOR (POST-IT)
+       ========================================================================= -->
+  <div id="sticky-modal" class="modal-backdrop">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h2>📝 แปะแผ่นบันทึกข้อความ (Sticky Note)</h2>
+        <button class="close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="color: var(--text-muted); font-size: 13px;">
+          เขียนข้อคิดเห็น คำชื่นชม หรือข้อเสนอแนะ แล้วแปะลงบนกำแพงห้องนิทรรศการ 3D
+        </p>
+
+        <form id="sticky-form" style="display: flex; flex-direction: column; gap: 12px;">
+          <div class="form-group">
+            <label>เลือกสีกระดาษโพสต์อิท:</label>
+            <div class="sticky-color-palette">
+              <div class="sticky-color-swatch active" data-color="#fef08a" style="background:#fef08a;" title="สีเหลืองคลาสสิก"></div>
+              <div class="sticky-color-swatch" data-color="#fbcfe8" style="background:#fbcfe8;" title="สีชมพูหวาน"></div>
+              <div class="sticky-color-swatch" data-color="#bbf7d0" style="background:#bbf7d0;" title="สีเขียวมินต์"></div>
+              <div class="sticky-color-swatch" data-color="#bae6fd" style="background:#bae6fd;" title="สีฟ้าสดใส"></div>
+              <div class="sticky-color-swatch" data-color="#fed7aa" style="background:#fed7aa;" title="สีส้มพาสเทล"></div>
+            </div>
+          </div>
+
+          <div class="sticky-preview-card" id="sticky-preview-box" style="background: #fef08a;">
+            <div style="font-weight: 600; font-size: 12px; margin-bottom: 6px;">📌 ตัวอย่างแผ่นโน้ต 3 มิติ</div>
+            <textarea id="sticky-input-text" class="form-textarea" style="background: transparent; border: 1px dashed rgba(0,0,0,0.2); color: #111; width: 100%; min-height: 90px;" placeholder="พิมพ์ความคิดเห็นของคุณที่นี่ (เช่น ชอบการอธิบายหลักธรรมนี้มาก เข้าใจง่าย...)" required></textarea>
+          </div>
+
+          <button type="submit" class="btn btn-primary" style="margin-top: 6px; padding: 12px;">
+            📌 แปะกระดาษโน้ตลงในโลกเสมือน 3D
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- =========================================================================
+       MODAL: AVATAR & CAMERA WEBCAM
+       ========================================================================= -->
+  <div id="avatar-modal" class="modal-backdrop">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h2>👤 สแกนใบหน้าสร้าง Avatar 3D (Spatial Camera Mapping)</h2>
+        <button class="close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="webcam-container">
+          <div class="camera-preview-box">
+            <video id="camera-video" autoplay playsinline muted></video>
+            <canvas id="camera-canvas" style="display: none;"></canvas>
+            <div class="face-oval-guide"></div>
+          </div>
+
+          <div style="display: flex; gap: 10px;">
+            <button id="btn-start-camera" class="btn btn-secondary">📷 เปิดกล้องเว็บแคม</button>
+            <button id="btn-capture-camera" class="btn btn-primary" disabled>📸 ถ่ายภาพใบหน้า</button>
+          </div>
+          <div style="margin-top: 10px;">
+            <input type="file" id="avatar-file-input" accept="image/*" style="display: none;">
+            <button type="button" id="btn-upload-avatar-file" class="btn btn-secondary" style="width: 100%; font-size: 13px; background: rgba(56, 189, 248, 0.15); border: 1px dashed #38bdf8; color: #38bdf8;">📁 หรือคลิกเพื่ออัปโหลดรูปภาพใบหน้าจากเครื่อง</button>
+          </div>
+        </div>
+
+
+        <div class="form-group" style="margin-top: 10px;">
+          <label>เลือกสีเสื้อผ้าของ Avatar:</label>
+          <div class="avatar-color-pickers">
+            <div class="color-option shirt-color-btn selected" data-color="#06b6d4" style="background:#06b6d4;"></div>
+            <div class="color-option shirt-color-btn" data-color="#8b5cf6" style="background:#8b5cf6;"></div>
+            <div class="color-option shirt-color-btn" data-color="#ec4899" style="background:#ec4899;"></div>
+            <div class="color-option shirt-color-btn" data-color="#f59e0b" style="background:#f59e0b;"></div>
+            <div class="color-option shirt-color-btn" data-color="#10b981" style="background:#10b981;"></div>
+            <div class="color-option shirt-color-btn" data-color="#3b82f6" style="background:#3b82f6;"></div>
+            <div class="color-option shirt-color-btn" data-color="#1e293b" style="background:#1e293b;"></div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary close-btn">บันทึก Avatar</button>
+      </div>
+    </div>
+  </div>
+  <!-- =========================================================================
+       MODAL: SHARE & PLAY ONLINE (IOS / ANDROID / IPAD / PC)
+       ========================================================================= -->
+  <div id="share-online-modal" class="modal-backdrop">
+    <div class="modal-box" style="max-width: 580px;">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 24px;">📲</span>
+          <div>
+            <h2 style="margin: 0; font-size: 16px; color: #34d399;">เข้าชมนิทรรศการออนไลน์ 3D (มือถือ & ไอแพด)</h2>
+            <div style="font-size: 11px; color: var(--text-muted);">เปิดเล่นได้ทุกอุปกรณ์ ทุกที่ ทุกเวลา ทั่วโลก</div>
+          </div>
+        </div>
+        <button class="close-btn">&times;</button>
+      </div>
+
+      <div class="modal-body" style="display: flex; flex-direction: column; gap: 14px;">
+        <!-- Online Link Box -->
+        <div style="background: rgba(16, 185, 129, 0.12); border: 1.5px solid rgba(16, 185, 129, 0.4); border-radius: 12px; padding: 12px 14px;">
+          <div style="font-size: 12px; font-weight: 700; color: #34d399; margin-bottom: 6px;">
+            🌐 ลิงก์ออนไลน์สาธารณะ (HTTPS):
+          </div>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <input type="text" id="share-online-url-input" class="form-input" value="https://textbook-dressed-broader-outlets.trycloudflare.com/" readonly style="background: rgba(15, 23, 42, 0.9); color: #38bdf8; font-weight: 700; font-size: 14px !important; flex: 1;">
+            <button id="btn-copy-share-url" class="btn btn-primary" style="white-space: nowrap; padding: 10px 16px; font-size: 13px;">
+              📋 คัดลอกลิงก์
+            </button>
+          </div>
+        </div>
+
+        <!-- QR Code & Quick Scan -->
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 14px; padding: 16px; text-align: center;">
+          <div style="background: white; padding: 10px; border-radius: 10px; display: inline-block; box-shadow: 0 4px 20px rgba(0,0,0,0.5);">
+            <img id="metaverse-qr-img" src="assets/images/metaverse_qr.png" alt="Metaverse QR Code" style="width: 180px; height: 180px; display: block;">
+          </div>
+          <div style="margin-top: 10px; font-size: 13px; font-weight: 700; color: #fbbf24;">
+            📷 ใช้โทรศัพท์มือถือ หรือ ไอแพด สแกน QR Code เข้าเล่นได้ทันที!
+          </div>
+          <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">
+            ไม่ต้องดาวน์โหลดแอปพลิเคชัน เล่นผ่านเบราว์เซอร์ได้ 100%
+          </div>
+        </div>
+
+        <!-- Multi-Platform Guide Cards -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+          <div style="background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 10px;">
+            <div style="font-weight: 700; font-size: 12px; color: #38bdf8; margin-bottom: 4px;">
+              🍏 iOS (iPhone / iPad)
+            </div>
+            <div style="font-size: 11px; color: #cbd5e1; line-height: 1.4;">
+              • แนะนำเปิดผ่าน Safari หรือ Chrome<br>
+              • ปุ่มสัมผัส ◀ ▲ ▶ ▼ ที่มุมซ้ายล่างสำหรับเดิน<br>
+              • ใช้นิ้วเลื่อนฝั่งขวาหน้าจอเพื่อหมุนมุมมอง
+            </div>
+          </div>
+
+          <div style="background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 10px;">
+            <div style="font-weight: 700; font-size: 12px; color: #34d399; margin-bottom: 4px;">
+              🤖 Android (มือถือ & แท็บเล็ต)
+            </div>
+            <div style="font-size: 11px; color: #cbd5e1; line-height: 1.4;">
+              • รองรับ Google Chrome ทุกเวอร์ชัน<br>
+              • แตะปุ่มหรือแตะที่บูธ 3D เพื่อเปิดดูผลงาน<br>
+              • ทำแบบทดสอบ 5 ข้อ เช็คอินได้ทันที
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center;">
+        <span style="font-size: 11px; color: var(--text-muted);">โรงเรียนพัฒนานิคม • Spatial Metaverse 3D</span>
+        <button class="btn btn-secondary close-btn">ปิดหน้าต่าง</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       SCRIPTS: THREE.JS, PAHO MQTT & METAVERSE MODULES
+       ========================================================================= -->
+  <script>
+    // Universal Canvas roundRect polyfill for iOS Safari, iPadOS & older browsers
+    if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D.prototype.roundRect) {
+      CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
+        if (typeof r === 'undefined') r = 0;
+        if (typeof r === 'number') r = [r, r, r, r];
+        const radius = Math.min(r[0] || 0, w / 2, h / 2);
+        this.beginPath();
+        this.moveTo(x + radius, y);
+        this.arcTo(x + w, y, x + w, y + h, radius);
+        this.arcTo(x + w, y + h, x, y + h, radius);
+        this.arcTo(x, y + h, x, y, radius);
+        this.arcTo(x, y, x + w, y, radius);
+        this.closePath();
+        return this;
+      };
+    }
+  </script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script>
+    if (typeof THREE === 'undefined') {
+      document.write('<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"><\/script>');
+    }
+  </script>
+
+  <!-- Paho MQTT: Native WebSockets browser client with zero Node polyfills -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js"></script>
+  <script>
+    if (typeof Paho === 'undefined') {
+      document.write('<script src="js/lib/paho-mqtt.min.js?v=realtime_v5"><\/script>');
+    }
+  </script>
+
+  <!-- PDF.js: High-Performance Canvas Rendering for PDF Presentations on Phones & iPads -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+  <script>
+    if (window.pdfjsLib) {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+    }
+  </script>
+
+  <script src="js/world.js?v=v20_multiplayer_face_sync"></script>
+  <script src="js/player.js?v=v20_multiplayer_face_sync"></script>
+  <script src="js/exhibition.js?v=v20_multiplayer_face_sync"></script>
+  <script src="js/stickynotes.js?v=v20_multiplayer_face_sync"></script>
+  <script src="js/multiplayer.js?v=v20_multiplayer_face_sync"></script>
+  <script src="js/ui.js?v=v20_multiplayer_face_sync"></script>
+  <script src="js/app.js?v=v20_multiplayer_face_sync"></script>
+
+
+</body>
+</html>
