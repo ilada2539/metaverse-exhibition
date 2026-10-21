@@ -54,37 +54,40 @@ class StickyNoteManager {
   }
 
   async loadNotes() {
+    const isCleared = localStorage.getItem('spatial_metaverse_sticky_notes_cleared') === 'true';
     const saved = localStorage.getItem('spatial_metaverse_sticky_notes');
-    if (saved) {
+    if (saved !== null) {
       try {
         this.notes = JSON.parse(saved);
+        if (!Array.isArray(this.notes)) this.notes = [];
       } catch (e) {
-        this.notes = JSON.parse(JSON.stringify(this.defaultNotes));
+        this.notes = [];
       }
+    } else if (isCleared) {
+      this.notes = [];
     } else {
-      this.notes = JSON.parse(JSON.stringify(this.defaultNotes));
-    }
-
-    try {
-      let resp = null;
+      // First time visitor fallback to default/server notes
+      this.notes = [];
       try {
-        resp = await fetch('/api/notes?_t=' + Date.now());
-      } catch (e) {}
-      if (!resp || !resp.ok) {
+        let resp = null;
         try {
-          resp = await fetch('data/notes.json?_t=' + Date.now());
+          resp = await fetch('/api/notes?_t=' + Date.now());
         } catch (e) {}
-      }
-      if (resp && resp.ok) {
-        const data = await resp.json();
-        const notes = Array.isArray(data) ? data : (data && data.notes);
-        if (notes && Array.isArray(notes) && notes.length > 0) {
-          this.notes = notes;
-          this.saveNotes();
-          this.renderAllNotes();
+        if (!resp || !resp.ok) {
+          try {
+            resp = await fetch('data/notes.json?_t=' + Date.now());
+          } catch (e) {}
         }
-      }
-    } catch (e) {}
+        if (resp && resp.ok) {
+          const data = await resp.json();
+          const notes = Array.isArray(data) ? data : (data && data.notes);
+          if (notes && Array.isArray(notes) && notes.length > 0) {
+            this.notes = notes;
+            this.saveNotes();
+          }
+        }
+      } catch (e) {}
+    }
   }
 
   saveNotes() {
@@ -209,6 +212,7 @@ class StickyNoteManager {
     };
 
     this.notes.push(newNote);
+    localStorage.removeItem('spatial_metaverse_sticky_notes_cleared');
     this.saveNotes();
     this.create3DNoteMesh(newNote);
 
@@ -239,6 +243,7 @@ class StickyNoteManager {
 
   clearAllNotes() {
     this.notes = [];
+    localStorage.setItem('spatial_metaverse_sticky_notes_cleared', 'true');
     this.saveNotes();
     this.renderAllNotes();
 

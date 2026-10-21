@@ -1181,14 +1181,14 @@ class SpatialUI {
     // Clear Check-ins Button
     const clearCheckinsBtn = document.getElementById('btn-clear-checkins');
     if (clearCheckinsBtn) {
-      clearCheckinsBtn.addEventListener('click', async () => {
+      clearCheckinsBtn.addEventListener('click', () => {
         const filterRoom = (document.getElementById('teacher-checkin-room-filter') || {}).value || 'all';
         const roomLabel = filterRoom === 'all' ? 'ทุกห้องนิทรรศการ (1-5)' : `ห้องที่ ${filterRoom}`;
         if (confirm(`คุณต้องการล้างข้อมูลการเช็คอินทั้งหมดใน "${roomLabel}" ใช่หรือไม่?`)) {
           if (this.app.exhibition) {
             this.app.exhibition.clearCheckins(filterRoom);
-            await this.syncTeacherDataFromServer();
             this.renderTeacherCheckinsTab();
+            if (this.renderTeacherAnalyticsTab) this.renderTeacherAnalyticsTab();
             this.showToast(`ล้างข้อมูลการเช็คอินใน "${roomLabel}" เรียบร้อยแล้ว`);
           }
         }
@@ -1198,14 +1198,14 @@ class SpatialUI {
     // Clear Likes Button
     const clearLikesBtn = document.getElementById('btn-clear-likes');
     if (clearLikesBtn) {
-      clearLikesBtn.addEventListener('click', async () => {
+      clearLikesBtn.addEventListener('click', () => {
         const filterRoom = (document.getElementById('teacher-likes-room-filter') || {}).value || 'all';
         const roomLabel = filterRoom === 'all' ? 'ทุกห้องนิทรรศการ (1-5)' : `ห้องที่ ${filterRoom}`;
         if (confirm(`คุณต้องการล้างข้อมูลการกดถูกใจทั้งหมดใน "${roomLabel}" ใช่หรือไม่?`)) {
           if (this.app.exhibition) {
             this.app.exhibition.clearLikes(filterRoom);
-            await this.syncTeacherDataFromServer();
             this.renderTeacherLikesTab();
+            if (this.renderTeacherAnalyticsTab) this.renderTeacherAnalyticsTab();
             this.showToast(`ล้างข้อมูลการกดถูกใจใน "${roomLabel}" เรียบร้อยแล้ว`);
           }
         }
@@ -1215,11 +1215,10 @@ class SpatialUI {
     // Clear All Sticky Notes Button
     const clearNotesBtn = document.getElementById('btn-clear-all-notes');
     if (clearNotesBtn) {
-      clearNotesBtn.addEventListener('click', async () => {
+      clearNotesBtn.addEventListener('click', () => {
         if (confirm('คุณต้องการล้างแผ่นกระดาษโน้ต Post-it ทั้งหมดในโลก 3D ใช่หรือไม่?')) {
           if (this.app.stickyNotes) {
             this.app.stickyNotes.clearAllNotes();
-            await this.syncTeacherDataFromServer();
             this.renderTeacherNotesTab();
             this.showToast('ล้างข้อความโน้ต Post-it ทั้งหมดเรียบร้อยแล้ว');
           }
@@ -1340,8 +1339,8 @@ class SpatialUI {
         }
         if (json.success && json.notes && this.app.stickyNotes) {
           this.app.stickyNotes.notes = json.notes;
-          localStorage.setItem('spatial_metaverse_stickies', JSON.stringify(json.notes));
-          this.app.stickyNotes.rebuildAllStickies();
+          localStorage.setItem('spatial_metaverse_sticky_notes', JSON.stringify(json.notes));
+          this.app.stickyNotes.renderAllNotes();
         }
       }
     } catch (e) {
@@ -1535,25 +1534,25 @@ class SpatialUI {
     }
   }
 
-  async deleteTeacherCheckin(roomId, boothId, studentNameEncoded, timestamp) {
+  deleteTeacherCheckin(roomId, boothId, studentNameEncoded, timestamp) {
     const studentName = decodeURIComponent(studentNameEncoded || '');
     if (confirm(`คุณต้องการลบข้อมูลการเช็คอินของ "${studentName}" ใช่หรือไม่?`)) {
       if (this.app.exhibition) {
         this.app.exhibition.deleteCheckinRecord(roomId, boothId, studentName, timestamp);
-        await this.syncTeacherDataFromServer();
         this.renderTeacherCheckinsTab();
+        if (this.renderTeacherAnalyticsTab) this.renderTeacherAnalyticsTab();
         this.showToast(`ลบข้อมูลการเช็คอินของ "${studentName}" เรียบร้อยแล้ว`);
       }
     }
   }
 
-  async deleteTeacherLike(roomId, boothId, studentNameEncoded, timestamp) {
+  deleteTeacherLike(roomId, boothId, studentNameEncoded, timestamp) {
     const studentName = decodeURIComponent(studentNameEncoded || '');
     if (confirm(`คุณต้องการลบรายการกดถูกใจของ "${studentName}" ใช่หรือไม่?`)) {
       if (this.app.exhibition) {
         this.app.exhibition.deleteLikeRecord(roomId, boothId, studentName, timestamp);
-        await this.syncTeacherDataFromServer();
         this.renderTeacherLikesTab();
+        if (this.renderTeacherAnalyticsTab) this.renderTeacherAnalyticsTab();
         this.showToast(`ลบรายการกดถูกใจของ "${studentName}" เรียบร้อยแล้ว`);
       }
     }

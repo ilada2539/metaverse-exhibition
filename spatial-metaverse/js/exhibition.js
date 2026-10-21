@@ -364,6 +364,11 @@ class ExhibitionManager {
 
   async fetchBoothsFromServer(roomId = this.currentRoomId) {
     try {
+      const isRoomCleared = localStorage.getItem(`spatial_room_cleared_${roomId}`) === 'true';
+      if (isRoomCleared) {
+        return;
+      }
+
       let resp = null;
       try {
         resp = await fetch(`/api/booths?room=${roomId}&_t=${Date.now()}`);
@@ -379,6 +384,12 @@ class ExhibitionManager {
         if (booths && Array.isArray(booths) && String(roomId) === String(this.currentRoomId)) {
           let updated = false;
           booths.forEach((srvArt, idx) => {
+            const boothNum = idx + 1;
+            const isBoothCleared = localStorage.getItem(`spatial_booth_cleared_${roomId}_${boothNum}`) === 'true';
+            if (isBoothCleared) {
+              return;
+            }
+
             if (srvArt && srvArt.title && !srvArt.isEmpty) {
               if (srvArt.presentationFile) {
                 if (srvArt.presentationFile.downloadUrl && srvArt.presentationFile.downloadUrl.startsWith('/api/presentation')) {
@@ -391,6 +402,19 @@ class ExhibitionManager {
               if (srvArt.coverImageUrl && srvArt.coverImageUrl.startsWith('/api/cover')) {
                 srvArt.coverImageUrl = `data/uploads/cover_r${srvArt.roomId || '1'}_b${srvArt.boothNumber || (idx + 1)}.jpg`;
               }
+
+              // Preserve local dynamic user engagement data (checkins, likes, likedBy)
+              const currentArt = this.artworks[idx];
+              if (currentArt) {
+                srvArt.checkins = Array.isArray(currentArt.checkins) ? currentArt.checkins : [];
+                srvArt.likedBy = Array.isArray(currentArt.likedBy) ? currentArt.likedBy : [];
+                srvArt.likes = typeof currentArt.likes === 'number' ? currentArt.likes : (srvArt.likedBy ? srvArt.likedBy.length : 0);
+              } else {
+                if (!Array.isArray(srvArt.checkins)) srvArt.checkins = [];
+                if (!Array.isArray(srvArt.likedBy)) srvArt.likedBy = [];
+                if (typeof srvArt.likes !== 'number') srvArt.likes = 0;
+              }
+
               this.artworks[idx] = srvArt;
               updated = true;
             }
@@ -413,6 +437,43 @@ class ExhibitionManager {
   }
 
   async loadExhibitionData() {
+    // One-time cleanup of legacy test checkins/likes if not cleaned yet
+    if (localStorage.getItem('spatial_metaverse_v24_cleaned') !== 'true') {
+      try {
+        for (let r = 1; r <= 5; r++) {
+          const rKey = `spatial_metaverse_exhibition_room_${r}`;
+          const rData = localStorage.getItem(rKey);
+          if (rData) {
+            const parsed = JSON.parse(rData);
+            if (Array.isArray(parsed)) {
+              parsed.forEach(b => {
+                if (b) {
+                  if (Array.isArray(b.checkins)) {
+                    b.checkins = b.checkins.filter(c => !c.id || (!c.id.startsWith('chk_179250') && !c.id.startsWith('chk_179257')));
+                  }
+                  if (Array.isArray(b.likedBy)) {
+                    b.likedBy = b.likedBy.filter(l => !l.id || (!l.id.startsWith('like_179250') && !l.id.startsWith('like_179257')));
+                    b.likes = b.likedBy.length;
+                  }
+                }
+              });
+              localStorage.setItem(rKey, JSON.stringify(parsed));
+            }
+          }
+        }
+        // Also cleanup legacy sticky notes
+        const nData = localStorage.getItem('spatial_metaverse_sticky_notes');
+        if (nData) {
+          const parsedNotes = JSON.parse(nData);
+          if (Array.isArray(parsedNotes)) {
+            const cleanedNotes = parsedNotes.filter(n => !n.id || (!n.id.startsWith('note_179250') && !n.id.startsWith('note_179257')));
+            localStorage.setItem('spatial_metaverse_sticky_notes', JSON.stringify(cleanedNotes));
+          }
+        }
+        localStorage.setItem('spatial_metaverse_v24_cleaned', 'true');
+      } catch (e) {}
+    }
+
     const key = this.getStorageKey();
     const saved = localStorage.getItem(key);
     if (saved) {
@@ -554,18 +615,36 @@ class ExhibitionManager {
 
   clearCurrentRoom() {
     localStorage.removeItem(this.getStorageKey());
+    localStorage.setItem(`spatial_room_cleared_${this.currentRoomId}`, 'true');
     this.artworks = this.createEmptyBooths();
     this.saveExhibitionData();
     this.refreshAllFrames();
+
+    try {
+      fetch('/api/clear_room', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ roomId: this.currentRoomId })
+      }).catch(() => {});
+    } catch (e) {}
   }
 
   clearAllRooms() {
     for (let i = 1; i <= 5; i++) {
       localStorage.removeItem(`spatial_metaverse_exhibition_room_${i}`);
+      localStorage.setItem(`spatial_room_cleared_${i}`, 'true');
     }
     this.artworks = this.createEmptyBooths();
     this.saveExhibitionData();
     this.refreshAllFrames();
+
+    try {
+      fetch('/api/clear_all_rooms', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({})
+      }).catch(() => {});
+    } catch (e) {}
   }
 
   createExhibitionFrames() {
@@ -1399,6 +1478,8 @@ class ExhibitionManager {
   setBoothArtwork(boothNumber, data) {
     const index = boothNumber - 1;
     if (index >= 0 && index < this.artworks.length) {
+      localStorage.removeItem(`spatial_room_cleared_${this.currentRoomId}`);
+      localStorage.removeItem(`spatial_booth_cleared_${this.currentRoomId}_${boothNumber}`);
       this.artworks[index] = {
         ...this.artworks[index],
         ...data,
@@ -1454,6 +1535,7 @@ class ExhibitionManager {
   resetBooth(boothNumber) {
     const index = boothNumber - 1;
     if (index >= 0 && index < this.artworks.length) {
+      localStorage.setItem(`spatial_booth_cleared_${this.currentRoomId}_${boothNumber}`, 'true');
       const slot = this.boothSlots[index];
       const room = this.getCurrentRoomInfo();
       this.artworks[index] = {
@@ -1729,12 +1811,15 @@ class ExhibitionManager {
         this.artworks = booths;
       }
     });
+    this.saveExhibitionData();
 
-    fetch('/api/clear_checkins', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ roomId: roomId })
-    }).catch(() => {});
+    try {
+      fetch('/api/clear_checkins', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ roomId: roomId })
+      }).catch(() => {});
+    } catch (e) {}
   }
 
   deleteCheckinRecord(roomId, boothId, studentName, timestamp) {
@@ -1751,13 +1836,16 @@ class ExhibitionManager {
     localStorage.setItem(`spatial_metaverse_exhibition_room_${r}`, JSON.stringify(booths));
     if (this.currentRoomId.toString() === r.toString()) {
       this.artworks = booths;
+      this.saveExhibitionData();
     }
 
-    fetch('/api/delete_checkin', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ roomId: roomId, boothId: boothId, studentName: studentName, timestamp: timestamp })
-    }).catch(() => {});
+    try {
+      fetch('/api/delete_checkin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ roomId: roomId, boothId: boothId, studentName: studentName, timestamp: timestamp })
+      }).catch(() => {});
+    } catch (e) {}
   }
 
   clearLikes(roomId = 'all') {
@@ -1777,12 +1865,15 @@ class ExhibitionManager {
         this.refreshAllFrames();
       }
     });
+    this.saveExhibitionData();
 
-    fetch('/api/clear_likes', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ roomId: roomId })
-    }).catch(() => {});
+    try {
+      fetch('/api/clear_likes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ roomId: roomId })
+      }).catch(() => {});
+    } catch (e) {}
   }
 
   deleteLikeRecord(roomId, boothId, studentName, timestamp) {
@@ -1800,14 +1891,17 @@ class ExhibitionManager {
     localStorage.setItem(`spatial_metaverse_exhibition_room_${r}`, JSON.stringify(booths));
     if (this.currentRoomId.toString() === r.toString()) {
       this.artworks = booths;
+      this.saveExhibitionData();
       this.refreshAllFrames();
     }
 
-    fetch('/api/delete_like', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ roomId: roomId, boothId: boothId, studentName: studentName, timestamp: timestamp })
-    }).catch(() => {});
+    try {
+      fetch('/api/delete_like', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ roomId: roomId, boothId: boothId, studentName: studentName, timestamp: timestamp })
+      }).catch(() => {});
+    } catch (e) {}
   }
 
   getOverallAnalytics() {

@@ -764,6 +764,15 @@ class MetaverseHandler(SimpleHTTPRequestHandler):
             self.send_json_response({'success': True, 'clearedRoom': room_id})
             return
 
+        # API: Clear All 5 Rooms
+        if path == '/api/clear_all_rooms':
+            for r in ['1', '2', '3', '4', '5']:
+                fp = get_room_filepath(r)
+                if os.path.exists(fp):
+                    os.remove(fp)
+            self.send_json_response({'success': True})
+            return
+
         self.send_json_response({'error': 'Not Found'}, 404)
 
     def send_json_response(self, obj, status=200):
