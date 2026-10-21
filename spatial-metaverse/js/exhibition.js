@@ -364,12 +364,21 @@ class ExhibitionManager {
 
   async fetchBoothsFromServer(roomId = this.currentRoomId) {
     try {
-      const resp = await fetch(`/api/booths?room=${roomId}&_t=${Date.now()}`);
-      if (resp.ok) {
+      let resp = null;
+      try {
+        resp = await fetch(`/api/booths?room=${roomId}&_t=${Date.now()}`);
+      } catch (e) {}
+      if (!resp || !resp.ok) {
+        try {
+          resp = await fetch(`data/booths_room_${roomId}.json?_t=${Date.now()}`);
+        } catch (e) {}
+      }
+      if (resp && resp.ok) {
         const result = await resp.json();
-        if (result && result.success && Array.isArray(result.booths) && String(roomId) === String(this.currentRoomId)) {
+        const booths = Array.isArray(result) ? result : (result && result.booths);
+        if (booths && Array.isArray(booths) && String(roomId) === String(this.currentRoomId)) {
           let updated = false;
-          result.booths.forEach((srvArt, idx) => {
+          booths.forEach((srvArt, idx) => {
             if (srvArt && srvArt.title && !srvArt.isEmpty) {
               this.artworks[idx] = srvArt;
               updated = true;

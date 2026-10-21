@@ -66,11 +66,20 @@ class StickyNoteManager {
     }
 
     try {
-      const resp = await fetch('/api/notes?_t=' + Date.now());
-      if (resp.ok) {
+      let resp = null;
+      try {
+        resp = await fetch('/api/notes?_t=' + Date.now());
+      } catch (e) {}
+      if (!resp || !resp.ok) {
+        try {
+          resp = await fetch('data/notes.json?_t=' + Date.now());
+        } catch (e) {}
+      }
+      if (resp && resp.ok) {
         const data = await resp.json();
-        if (data && data.success && Array.isArray(data.notes) && data.notes.length > 0) {
-          this.notes = data.notes;
+        const notes = Array.isArray(data) ? data : (data && data.notes);
+        if (notes && Array.isArray(notes) && notes.length > 0) {
+          this.notes = notes;
           this.saveNotes();
           this.renderAllNotes();
         }
