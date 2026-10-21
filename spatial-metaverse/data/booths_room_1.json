@@ -253,10 +253,10 @@
       "size": "10.6 MB",
       "type": "pdf",
       "isUrl": false,
-      "downloadUrl": "/api/presentation?room=1&booth=1",
-      "coverUrl": "/api/cover?room=1&booth=1"
+      "downloadUrl": "data/uploads/pres_r1_b1.pdf",
+      "coverUrl": "data/uploads/cover_r1_b1.jpg"
     },
-    "coverImageUrl": "/api/cover?room=1&booth=1",
+    "coverImageUrl": "data/uploads/cover_r1_b1.jpg",
     "isEmpty": false,
     "pos": {
       "x": -16.5,

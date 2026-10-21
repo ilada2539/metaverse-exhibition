@@ -2321,7 +2321,14 @@ class SpatialUI {
     if (likeTop) likeTop.innerHTML = `❤️ ถูกใจ (${likeCount})`;
     if (likeBottom) likeBottom.innerHTML = `❤️ ถูกใจ (${likeCount})`;
 
-    const fileUrl = file.downloadUrl || file.dataUrl;
+    let fileUrl = file.downloadUrl || file.dataUrl;
+    if (fileUrl && (fileUrl.startsWith('/api/presentation') || (!fileUrl.includes('/') && !fileUrl.startsWith('data:')))) {
+      const roomMatch = fileUrl.match(/[?&]room=(\d+)/);
+      const boothMatch = fileUrl.match(/[?&]booth=(\d+)/);
+      const r = (roomMatch && roomMatch[1]) || (effectiveArt && effectiveArt.roomId) || '1';
+      const b = (boothMatch && boothMatch[1]) || (effectiveArt && effectiveArt.boothNumber) || '1';
+      fileUrl = `data/uploads/pres_r${r}_b${b}.pdf`;
+    }
     const isPPT = file.type === 'ppt' || (file.name && (file.name.endsWith('.ppt') || file.name.endsWith('.pptx')));
     const isPDF = file.type === 'pdf' || (file.name && file.name.endsWith('.pdf')) || (fileUrl && (fileUrl.startsWith('data:application/pdf') || fileUrl.includes('.pdf')));
     const isImg = file.type === 'image' || (file.name && /\.(jpe?g|png|webp)$/i.test(file.name)) || (fileUrl && fileUrl.startsWith('data:image/'));
@@ -2551,7 +2558,17 @@ class SpatialUI {
     if (loader) loader.style.display = 'none';
 
     const effectiveArt = this.currentViewingArt || this.currentInspectedArt;
-    const coverUrl = (this.currentViewingDoc && this.currentViewingDoc.coverUrl) || (effectiveArt && (effectiveArt.coverImageUrl || (effectiveArt.presentationFile && effectiveArt.presentationFile.coverUrl))) || (effectiveArt ? `/api/cover?room=${effectiveArt.roomId || '1'}&booth=${effectiveArt.boothNumber || '1'}` : null);
+    let coverUrl = (this.currentViewingDoc && this.currentViewingDoc.coverUrl) || (effectiveArt && (effectiveArt.coverImageUrl || (effectiveArt.presentationFile && effectiveArt.presentationFile.coverUrl)));
+    if (!coverUrl && effectiveArt) {
+      coverUrl = `data/uploads/cover_r${effectiveArt.roomId || '1'}_b${effectiveArt.boothNumber || '1'}.jpg`;
+    }
+    if (coverUrl && coverUrl.startsWith('/api/cover')) {
+      const roomMatch = coverUrl.match(/[?&]room=(\d+)/);
+      const boothMatch = coverUrl.match(/[?&]booth=(\d+)/);
+      const r = (roomMatch && roomMatch[1]) || (effectiveArt && effectiveArt.roomId) || '1';
+      const b = (boothMatch && boothMatch[1]) || (effectiveArt && effectiveArt.boothNumber) || '1';
+      coverUrl = `data/uploads/cover_r${r}_b${b}.jpg`;
+    }
 
     if (coverUrl && imgSlide) {
       imgSlide.src = coverUrl;
@@ -2646,17 +2663,24 @@ class SpatialUI {
 
   downloadPresentationFile(file) {
     if (!file) return;
-    const targetUrl = file.downloadUrl || file.dataUrl;
+    let targetUrl = file.downloadUrl || file.dataUrl;
+    if (targetUrl && (targetUrl.startsWith('/api/presentation') || (!targetUrl.includes('/') && !targetUrl.startsWith('data:')))) {
+      const roomMatch = targetUrl.match(/[?&]room=(\d+)/);
+      const boothMatch = targetUrl.match(/[?&]booth=(\d+)/);
+      const r = (roomMatch && roomMatch[1]) || '1';
+      const b = (boothMatch && boothMatch[1]) || '1';
+      targetUrl = `data/uploads/pres_r${r}_b${b}.pdf`;
+    }
     if (!targetUrl) return;
 
-    if (file.downloadUrl || file.isUrl) {
+    if (file.isUrl && !targetUrl.startsWith('data:')) {
       window.open(targetUrl, '_blank');
       return;
     }
 
     const a = document.createElement('a');
     a.href = targetUrl;
-    a.download = file.name || 'presentation_file';
+    a.download = file.name || 'presentation_file.pdf';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);

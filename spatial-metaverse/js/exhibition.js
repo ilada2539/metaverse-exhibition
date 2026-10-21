@@ -380,6 +380,17 @@ class ExhibitionManager {
           let updated = false;
           booths.forEach((srvArt, idx) => {
             if (srvArt && srvArt.title && !srvArt.isEmpty) {
+              if (srvArt.presentationFile) {
+                if (srvArt.presentationFile.downloadUrl && srvArt.presentationFile.downloadUrl.startsWith('/api/presentation')) {
+                  srvArt.presentationFile.downloadUrl = `data/uploads/pres_r${srvArt.roomId || '1'}_b${srvArt.boothNumber || (idx + 1)}.pdf`;
+                }
+                if (srvArt.presentationFile.coverUrl && srvArt.presentationFile.coverUrl.startsWith('/api/cover')) {
+                  srvArt.presentationFile.coverUrl = `data/uploads/cover_r${srvArt.roomId || '1'}_b${srvArt.boothNumber || (idx + 1)}.jpg`;
+                }
+              }
+              if (srvArt.coverImageUrl && srvArt.coverImageUrl.startsWith('/api/cover')) {
+                srvArt.coverImageUrl = `data/uploads/cover_r${srvArt.roomId || '1'}_b${srvArt.boothNumber || (idx + 1)}.jpg`;
+              }
               this.artworks[idx] = srvArt;
               updated = true;
             }
@@ -411,6 +422,17 @@ class ExhibitionManager {
           this.artworks = parsed;
           for (let idx = 0; idx < this.artworks.length; idx++) {
             const art = this.artworks[idx];
+            if (art && art.presentationFile) {
+              if (art.presentationFile.downloadUrl && art.presentationFile.downloadUrl.startsWith('/api/presentation')) {
+                art.presentationFile.downloadUrl = `data/uploads/pres_r${art.roomId || '1'}_b${art.boothNumber || (idx + 1)}.pdf`;
+              }
+              if (art.presentationFile.coverUrl && art.presentationFile.coverUrl.startsWith('/api/cover')) {
+                art.presentationFile.coverUrl = `data/uploads/cover_r${art.roomId || '1'}_b${art.boothNumber || (idx + 1)}.jpg`;
+              }
+            }
+            if (art && art.coverImageUrl && art.coverImageUrl.startsWith('/api/cover')) {
+              art.coverImageUrl = `data/uploads/cover_r${art.roomId || '1'}_b${art.boothNumber || (idx + 1)}.jpg`;
+            }
             // Ensure quizQuestions, checkins, likedBy exist for backwards compatibility
             if (!art.quizQuestions || !Array.isArray(art.quizQuestions) || art.quizQuestions.length === 0) {
               art.quizQuestions = this.getDefaultQuestionsForRoom(this.currentRoomId, idx + 1);
@@ -908,13 +930,21 @@ class ExhibitionManager {
 
   getCoverImageUrl(art) {
     if (!art) return null;
-    if (art.coverImageUrl && art.coverImageUrl.length > 5) return art.coverImageUrl;
-    if (art.presentationFile && art.presentationFile.coverUrl) return art.presentationFile.coverUrl;
-    if (art.imageURL && art.imageURL.length > 5) return art.imageURL;
-    if (art.roomId && art.boothNumber) {
-      return `/api/cover?room=${art.roomId}&booth=${art.boothNumber}`;
+    let url = null;
+    if (art.coverImageUrl && art.coverImageUrl.length > 5) url = art.coverImageUrl;
+    else if (art.presentationFile && art.presentationFile.coverUrl) url = art.presentationFile.coverUrl;
+    else if (art.imageURL && art.imageURL.length > 5) url = art.imageURL;
+    else if (art.roomId && art.boothNumber) {
+      url = `data/uploads/cover_r${art.roomId}_b${art.boothNumber}.jpg`;
     }
-    return null;
+    if (url && url.startsWith('/api/cover')) {
+      const roomMatch = url.match(/[?&]room=(\d+)/);
+      const boothMatch = url.match(/[?&]booth=(\d+)/);
+      const r = (roomMatch && roomMatch[1]) || art.roomId || '1';
+      const b = (boothMatch && boothMatch[1]) || art.boothNumber || '1';
+      url = `data/uploads/cover_r${r}_b${b}.jpg`;
+    }
+    return url;
   }
 
   loadBoothCover(art, callback) {
