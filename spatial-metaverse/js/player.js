@@ -542,14 +542,39 @@ class MetaversePlayer {
     this.updateReadingBadge(false);
   }
 
+  resetKeys() {
+    this.keys.forward = false;
+    this.keys.backward = false;
+    this.keys.left = false;
+    this.keys.right = false;
+    if (this.joystickVector) {
+      this.joystickVector.x = 0;
+      this.joystickVector.y = 0;
+    }
+    if (this.velocity) {
+      this.velocity.x = 0;
+      this.velocity.z = 0;
+    }
+  }
+
   initControls() {
-    // Helper to check if active element is text field
+    // Helper to check if active element is text field or select dropdown
     const isTextInputActive = () => {
       const active = document.activeElement;
-      if (!active) return false;
+      if (!active || active === document.body) return false;
       const tag = active.tagName.toLowerCase();
-      return (tag === 'input' || tag === 'textarea') && active.offsetParent !== null;
+      return (tag === 'input' || tag === 'textarea' || tag === 'select') && active.offsetParent !== null;
     };
+
+    // When window loses focus, reset all movement keys immediately to prevent stuck auto-walking
+    window.addEventListener('blur', () => {
+      this.resetKeys();
+    });
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        this.resetKeys();
+      }
+    });
 
     // Click on canvas to blur any stuck inputs and regain keyboard focus
     this.domElement.addEventListener('click', () => {
@@ -600,6 +625,7 @@ class MetaversePlayer {
       const code = e.code;
       const key = e.key ? e.key.toLowerCase() : '';
 
+      // Always clear movement on keyup regardless of focus state
       if (code === 'KeyW' || code === 'ArrowUp' || key === 'w' || key === 'ไ') {
         this.keys.forward = false;
       }

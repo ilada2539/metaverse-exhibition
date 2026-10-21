@@ -158,6 +158,10 @@ class SpatialUI {
     if (hudRoomSelect) {
       hudRoomSelect.addEventListener('change', (e) => {
         const roomId = e.target.value;
+        hudRoomSelect.blur();
+        if (document.activeElement && document.activeElement.blur) {
+          document.activeElement.blur();
+        }
         this.switchRoom(roomId);
       });
     }
@@ -233,6 +237,24 @@ class SpatialUI {
 
   switchRoom(roomId) {
     if (!this.app.exhibition) return;
+
+    // 1. Drop focus from any select dropdown or UI button
+    if (document.activeElement && document.activeElement.blur) {
+      document.activeElement.blur();
+    }
+
+    // 2. Stop all player movement immediately to prevent stuck auto-walking
+    if (this.app.player) {
+      this.app.player.resetKeys();
+      this.app.player.stopReading();
+      this.app.player.position.set(0, 0, 5);
+      this.app.player.cameraYaw = Math.PI;
+      if (this.app.player.avatarGroup) {
+        this.app.player.avatarGroup.rotation.y = Math.PI;
+      }
+    }
+
+    // 3. Switch exhibition & 3D world dynamic theme
     const roomInfo = this.app.exhibition.switchRoom(roomId);
     if (roomInfo) {
       if (this.app.multiplayer) {
